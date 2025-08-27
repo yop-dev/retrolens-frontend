@@ -48,26 +48,33 @@ const DiscussionImage = React.memo<{ src: string; alt: string }>(({ src, alt }) 
   const [imageLoaded, setImageLoaded] = useState(false)
   const [imageError, setImageError] = useState(false)
 
+  // Log for debugging
+  useEffect(() => {
+    console.log('DiscussionImage mounted for:', src)
+  }, [src])
+
   return (
-    <div className="image-container">
+    <div className="discussion-image-wrapper">
       {!imageLoaded && !imageError && (
-        <div className="skeleton skeleton-image" style={{ height: '200px' }}></div>
+        <div className="skeleton skeleton-image" style={{ height: '200px', minHeight: '200px' }}></div>
       )}
       <img 
         src={src} 
         alt={alt}
         className="discussion-image"
-        loading="lazy"
         onLoad={() => {
-          console.log('Image loaded:', src)
+          console.log('Image loaded successfully:', src)
           setImageLoaded(true)
         }}
         onError={(e) => {
           console.error('Failed to load image:', src)
           setImageError(true)
-          e.currentTarget.style.display = 'none'
         }}
-        style={{ display: imageLoaded && !imageError ? 'block' : 'none' }}
+        style={{ 
+          display: imageError ? 'none' : 'block',
+          opacity: imageLoaded ? 1 : 0,
+          transition: 'opacity 0.3s ease-in-out'
+        }}
       />
     </div>
   )
@@ -111,16 +118,18 @@ const DiscussionCard = React.memo<{
         {/* Images */}
         {discussion.images && discussion.images.length > 0 && (
           <div className="discussion-images">
-            {discussion.images.filter((img: string) => img && img.trim() !== '').map((image, index) => {
-              console.log('Rendering image in discussion:', discussion.id, image)
-              return (
-                <DiscussionImage 
-                  key={`${discussion.id}-${index}`} 
-                  src={image} 
-                  alt="Discussion attachment" 
-                />
-              )
-            })}
+            {discussion.images
+              .filter((img: string) => img && img.trim() !== '')
+              .map((image, index) => {
+                console.log('Rendering image in discussion:', discussion.id, 'index:', index, 'url:', image)
+                return (
+                  <DiscussionImage 
+                    key={`${discussion.id}-img-${index}-${image.substring(image.lastIndexOf('/') + 1, image.lastIndexOf('/') + 10)}`} 
+                    src={image} 
+                    alt="Discussion attachment" 
+                  />
+                )
+              })}
           </div>
         )}
 
@@ -364,7 +373,12 @@ export const FeedOptimized: PageComponent = () => {
       })
       
       if (isLoadMore) {
-        setDiscussions(prev => [...prev, ...transformedDiscussions])
+        // Filter out duplicates when loading more
+        setDiscussions(prev => {
+          const existingIds = new Set(prev.map(d => d.id))
+          const newDiscussions = transformedDiscussions.filter(d => !existingIds.has(d.id))
+          return [...prev, ...newDiscussions]
+        })
       } else {
         setDiscussions(transformedDiscussions)
         // Cache initial results
