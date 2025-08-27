@@ -1,0 +1,96 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Production build
+/build
+/dist
+
+# Testing
+/coverage
+*.lcov
+.nyc_output
+
+# Temporary files
+*.tmp
+*.temp
+.tmp
+.temp
+
+# OS generated files
+Thumbs.db
+Desktop.ini
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Package manager locks (keep one, ignore others based on your preference)
+# If using npm, keep package-lock.json and ignore others
+# yarn.lock
+# pnpm-lock.yaml
+
+# TypeScript
+*.tsbuildinfo
+.tsc-cache
+
+# Vite
+vite.config.ts.timestamp-*
+
+# PWA files
+**/public/sw.js
+**/public/workbox-*.js
+**/public/worker-*.js
+**/public/sw.js.map
+**/public/workbox-*.js.map
+**/public/worker-*.js.map
+
+# Storybook
+storybook-static
+*.storybook.log
+
+# ESLint
+.eslintcache
+
+# Prettier
+.prettierignore
+
+# Debug
+debug.log*
+
+# Misc
+*.bak
+*.orig
+*~
+.cache
+.parcel-cache
+.vercel
+.turbo

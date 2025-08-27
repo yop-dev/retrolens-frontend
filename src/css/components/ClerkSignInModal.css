@@ -1,0 +1,105 @@
+.clerk-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 1rem;
+}
+
+.clerk-modal-container {
+  position: relative;
+  background: white;
+  border-radius: 12px;
+  padding: 0;
+  max-width: 380px !important;
+  width: 100%;
+  max-height: 85vh;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.clerk-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10000;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #ddd;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #666;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.clerk-modal-close:hover {
+  background: white;
+  border-color: #999;
+  color: #333;
+}
+
+/* Hide elements that might trigger alternative auth methods */
+.hidden-element {
+  display: none !important;
+}
+
+/* Override Clerk's default styles */
+.clerk-signin-root {
+  width: 100%;
+}
+
+.clerk-signin-card {
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.clerk-signin-title {
+  color: #2C3E50 !important;
+}
+
+.clerk-signin-subtitle {
+  color: #666666 !important;
+}
+
+.clerk-signin-button {
+  background: #E67E22 !important;
+  transition: all 0.2s !important;
+}
+
+.clerk-signin-button:hover {
+  background: #d46a11 !important;
+}
+
+.clerk-signin-link {
+  color: #E67E22 !important;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
+  .clerk-modal-overlay {
+    padding: 0.5rem;
+  }
+  
+  .clerk-modal-container {
+    max-width: calc(100vw - 1rem);
+  }
+  
+  .clerk-modal-close {
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 28px;
+    height: 28px;
+    font-size: 1.1rem;
+  }
+}

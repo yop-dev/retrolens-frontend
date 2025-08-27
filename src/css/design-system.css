@@ -1,0 +1,299 @@
+/* Design System - CSS Custom Properties and Base Styles */
+:root {
+  /* Typography */
+  --font-family-primary: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  
+  /* Font Sizes */
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5rem;    /* 24px */
+  --font-size-3xl: 2rem;      /* 32px */
+  --font-size-4xl: 2.5rem;    /* 40px */
+  
+  /* Font Weights */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Line Heights */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* Color System - Vintage Film-Inspired Palette */
+  
+  /* Core Vintage Film Colors */
+  --vintage-cream: #F5F0E6;           /* Primary Background - Cream/Off-white */
+  --vintage-tan: #E0C097;             /* Secondary Background/Cards - Soft Tan */
+  --vintage-brown-dark: #2C1810;      /* Primary Text - Rich Brown */
+  --vintage-brown-deep: #5C4033;      /* Secondary Text - Deep Brown */
+  --vintage-terracotta: #C97C5D;      /* Accent/Buttons - Warm Terracotta */
+  --vintage-brown-muted: #A68A79;     /* Borders/Dividers - Soft Muted Brown */
+  
+  /* Extended Palette for Gradients and Variations */
+  --vintage-cream-light: #FAF8F3;     /* Lighter cream for highlights */
+  --vintage-tan-light: #EDD4B5;       /* Lighter tan for hover states */
+  --vintage-tan-dark: #D4A574;        /* Darker tan for depth */
+  --vintage-brown-medium: #8B6F47;    /* Medium brown for accents */
+  --vintage-terracotta-light: #D99177; /* Lighter terracotta for hover */
+  --vintage-terracotta-dark: #B56942;  /* Darker terracotta for active states */
+  --vintage-sepia: #704214;           /* Deep sepia for special elements */
+  
+  /* Primary Colors - Mapped to Vintage Palette */
+  --color-primary-50: var(--vintage-cream-light);
+  --color-primary-100: var(--vintage-cream);
+  --color-primary-200: var(--vintage-tan-light);
+  --color-primary-300: var(--vintage-tan);
+  --color-primary-400: var(--vintage-tan-dark);
+  --color-primary-500: var(--vintage-brown-deep);  /* Main primary */
+  --color-primary-600: var(--vintage-brown-dark);
+  --color-primary-700: #1F120B;  /* Even darker for emphasis */
+  --color-primary-800: #150C07;
+  --color-primary-900: #0A0603;
+  
+  /* Secondary Colors - Terracotta Theme */
+  --color-secondary-50: #FDF6F3;
+  --color-secondary-100: #FAE8E2;
+  --color-secondary-200: var(--vintage-terracotta-light);
+  --color-secondary-300: var(--vintage-terracotta);
+  --color-secondary-400: var(--vintage-terracotta-dark);
+  --color-secondary-500: var(--vintage-terracotta);  /* Main secondary */
+  --color-secondary-600: var(--vintage-terracotta-dark);
+  --color-secondary-700: #9A5234;
+  --color-secondary-800: #7D3E23;
+  --color-secondary-900: #5F2B15;
+
+  /* Neutral Colors - Vintage Browns and Creams */
+  --color-neutral-50: var(--vintage-cream);
+  --color-neutral-100: var(--vintage-tan-light);
+  --color-neutral-200: var(--vintage-tan);
+  --color-neutral-300: var(--vintage-brown-muted);
+  --color-neutral-400: var(--vintage-brown-medium);
+  --color-neutral-500: var(--vintage-brown-deep);
+  --color-neutral-600: #4A342A;
+  --color-neutral-700: var(--vintage-brown-dark);
+  --color-neutral-800: #1F120B;
+  --color-neutral-900: #150C07;
+
+  /* Semantic Colors - Adapted to Vintage Palette */
+  --color-success-500: #7A8B3A;  /* Muted olive green */
+  --color-success-600: #647230;
+  --color-error-500: #B85450;    /* Dusty red */
+  --color-error-600: #9C3F3B;
+  --color-warning-500: var(--vintage-terracotta);
+  --color-warning-600: var(--vintage-terracotta-dark);
+  --color-info-500: #6B7F8D;     /* Muted blue-grey */
+  --color-info-600: #556A78;
+
+  /* Background Colors */
+  --color-background-primary: var(--vintage-cream);
+  --color-background-secondary: var(--vintage-tan);
+  --color-background-tertiary: var(--vintage-tan-light);
+  --color-background-accent: var(--vintage-cream-light);
+
+  /* Text Colors */
+  --color-text-primary: var(--vintage-brown-dark);
+  --color-text-secondary: var(--vintage-brown-deep);
+  --color-text-tertiary: var(--vintage-brown-medium);
+  --color-text-inverse: var(--vintage-cream);
+  --color-text-link: var(--vintage-terracotta);
+  --color-text-link-hover: var(--vintage-terracotta-dark);
+
+  /* Border Colors */
+  --color-border-primary: var(--vintage-brown-muted);
+  --color-border-secondary: var(--vintage-tan-dark);
+  --color-border-accent: var(--vintage-terracotta);
+
+  /* Spacing System (8px base unit) */
+  --spacing-0: 0;
+  --spacing-1: 0.25rem;   /* 4px */
+  --spacing-2: 0.5rem;    /* 8px */
+  --spacing-3: 0.75rem;   /* 12px */
+  --spacing-4: 1rem;      /* 16px */
+  --spacing-5: 1.25rem;   /* 20px */
+  --spacing-6: 1.5rem;    /* 24px */
+  --spacing-8: 2rem;      /* 32px */
+  --spacing-10: 2.5rem;   /* 40px */
+  --spacing-12: 3rem;     /* 48px */
+  --spacing-16: 4rem;     /* 64px */
+  --spacing-20: 5rem;     /* 80px */
+  --spacing-24: 6rem;     /* 96px */
+
+  /* Border Radius */
+  --radius-sm: 0.25rem;   /* 4px */
+  --radius-base: 0.5rem;  /* 8px */
+  --radius-lg: 0.75rem;   /* 12px */
+  --radius-xl: 1rem;      /* 16px */
+  --radius-full: 9999px;
+
+  /* Shadows - Warm sepia-toned shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(44, 24, 16, 0.08);
+  --shadow-base: 0 1px 3px 0 rgba(44, 24, 16, 0.12), 0 1px 2px 0 rgba(44, 24, 16, 0.08);
+  --shadow-md: 0 4px 6px -1px rgba(44, 24, 16, 0.15), 0 2px 4px -1px rgba(44, 24, 16, 0.08);
+  --shadow-lg: 0 10px 15px -3px rgba(44, 24, 16, 0.18), 0 4px 6px -2px rgba(44, 24, 16, 0.08);
+  --shadow-xl: 0 20px 25px -5px rgba(44, 24, 16, 0.20), 0 10px 10px -5px rgba(44, 24, 16, 0.08);
+
+  /* Z-Index Scale */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal: 1040;
+  --z-popover: 1050;
+  --z-tooltip: 1060;
+
+  /* Transition Durations */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+
+  /* Breakpoints */
+  --breakpoint-mobile: 640px;
+  --breakpoint-tablet: 768px;
+  --breakpoint-desktop: 1024px;
+  --breakpoint-wide: 1280px;
+
+  /* Component Sizes */
+  --size-button-sm: 2rem;     /* 32px */
+  --size-button-base: 2.5rem; /* 40px */
+  --size-button-lg: 3rem;     /* 48px */
+  
+  --size-avatar-xs: 1.5rem;   /* 24px */
+  --size-avatar-sm: 2rem;     /* 32px */
+  --size-avatar-base: 2.5rem; /* 40px */
+  --size-avatar-lg: 4rem;     /* 64px */
+  --size-avatar-xl: 8rem;     /* 128px */
+  --size-avatar-2xl: 12rem;   /* 192px */
+
+  /* Legacy Variables for Backwards Compatibility */
+  --primary: var(--vintage-brown-deep);
+  --secondary: var(--vintage-terracotta);
+  --background: var(--vintage-cream);
+  --text: var(--vintage-brown-dark);
+  --success: var(--color-success-500);
+  --error: var(--color-error-500);
+  --white: var(--vintage-cream);
+  --border: var(--vintage-brown-muted);
+  --shadow: rgba(44, 24, 16, 0.15);
+}
+
+/* Dark Mode Support - Vintage Night Theme */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background-primary: #1F120B;
+    --color-background-secondary: var(--vintage-brown-dark);
+    --color-background-tertiary: #3A2518;
+    --color-text-primary: var(--vintage-cream);
+    --color-text-secondary: var(--vintage-tan);
+    --color-text-tertiary: var(--vintage-brown-muted);
+    --color-border-primary: #4A342A;
+    --color-border-secondary: var(--vintage-brown-deep);
+    /* Adjust vintage colors for dark mode */
+    --vintage-cream: #F5F0E6;
+    --vintage-tan: #E0C097;
+    --vintage-terracotta: #D99177;
+  }
+}
+
+/* Base Reset and Typography */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  line-height: var(--line-height-normal);
+  -webkit-text-size-adjust: 100%;
+  font-family: var(--font-family-primary);
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+  background-color: var(--color-background-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  min-width: 320px;
+}
+
+/* Typography Classes */
+.text-xs { font-size: var(--font-size-xs); }
+.text-sm { font-size: var(--font-size-sm); }
+.text-base { font-size: var(--font-size-base); }
+.text-lg { font-size: var(--font-size-lg); }
+.text-xl { font-size: var(--font-size-xl); }
+.text-2xl { font-size: var(--font-size-2xl); }
+.text-3xl { font-size: var(--font-size-3xl); }
+.text-4xl { font-size: var(--font-size-4xl); }
+
+.font-normal { font-weight: var(--font-weight-normal); }
+.font-medium { font-weight: var(--font-weight-medium); }
+.font-semibold { font-weight: var(--font-weight-semibold); }
+.font-bold { font-weight: var(--font-weight-bold); }
+
+.text-primary { color: var(--color-text-primary); }
+.text-secondary { color: var(--color-text-secondary); }
+.text-tertiary { color: var(--color-text-tertiary); }
+.text-inverse { color: var(--color-text-inverse); }
+
+/* Responsive Typography */
+@media (max-width: 768px) {
+  .text-4xl { font-size: var(--font-size-3xl); }
+  .text-3xl { font-size: var(--font-size-2xl); }
+  .text-2xl { font-size: var(--font-size-xl); }
+}
+
+/* Focus Management */
+:focus {
+  outline: 2px solid var(--vintage-terracotta);
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Link Styles */
+a {
+  color: var(--color-text-link);
+  text-decoration: none;
+  transition: color var(--duration-fast) ease;
+}
+
+a:hover {
+  color: var(--color-text-link-hover);
+}
+
+/* Button Reset */
+button {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  margin: 0;
+}
+
+/* Input Reset */
+input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* Image Optimization */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
