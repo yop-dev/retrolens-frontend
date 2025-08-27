@@ -7,7 +7,8 @@ import { Header, AuthWrapper } from '@/components';
 import { Landing, Dashboard, Profile, Search, Feed, Discover, Collection, AddCamera } from '@/pages';
 
 // Lazy load components for better performance
-const LazyFeed = lazy(() => import('@/pages/Feed'));
+const LazyFeed = lazy(() => import('@/pages/FeedOptimized'));
+const LazyProfile = lazy(() => import('@/pages/ProfileOptimized'));
 const LazyDiscover = lazy(() => import('@/pages/Discover'));
 const LazyCollection = lazy(() => import('@/pages/Collection'));
 
@@ -106,7 +107,9 @@ function AppContent() {
               path={ROUTE_PATHS.PROFILE} 
               element={
                 <ProtectedRoute>
-                  <Profile />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <LazyProfile />
+                  </Suspense>
                 </ProtectedRoute>
               } 
             />
