@@ -43,15 +43,44 @@ const popularTags = [
   { tag: 'nikon', count: 128 }
 ]
 
+// Individual Image Component with its own loading state
+const DiscussionImage = React.memo<{ src: string; alt: string }>(({ src, alt }) => {
+  const [imageLoaded, setImageLoaded] = useState(false)
+  const [imageError, setImageError] = useState(false)
+
+  return (
+    <div className="image-container">
+      {!imageLoaded && !imageError && (
+        <div className="skeleton skeleton-image" style={{ height: '200px' }}></div>
+      )}
+      <img 
+        src={src} 
+        alt={alt}
+        className="discussion-image"
+        loading="lazy"
+        onLoad={() => {
+          console.log('Image loaded:', src)
+          setImageLoaded(true)
+        }}
+        onError={(e) => {
+          console.error('Failed to load image:', src)
+          setImageError(true)
+          e.currentTarget.style.display = 'none'
+        }}
+        style={{ display: imageLoaded && !imageError ? 'block' : 'none' }}
+      />
+    </div>
+  )
+})
+
+DiscussionImage.displayName = 'DiscussionImage'
+
 // Memoized Discussion Card Component
 const DiscussionCard = React.memo<{ 
   discussion: Discussion
   onLike: (id: string) => void
   onShare: (id: string) => void
 }>(({ discussion, onLike, onShare }) => {
-  const [imageLoaded, setImageLoaded] = useState(false)
-  const [imageError, setImageError] = useState(false)
-
   return (
     <div className="discussion-card">
       <div className="discussion-header">
@@ -79,28 +108,19 @@ const DiscussionCard = React.memo<{
           )}
         </p>
 
-        {/* Lazy loaded images */}
+        {/* Images */}
         {discussion.images && discussion.images.length > 0 && (
           <div className="discussion-images">
-            {discussion.images.filter((img: string) => img && img.trim() !== '').map((image, index) => (
-              <div key={index} className="image-container">
-                {!imageLoaded && !imageError && (
-                  <div className="skeleton skeleton-image" style={{ height: '200px' }}></div>
-                )}
-                <img 
+            {discussion.images.filter((img: string) => img && img.trim() !== '').map((image, index) => {
+              console.log('Rendering image in discussion:', discussion.id, image)
+              return (
+                <DiscussionImage 
+                  key={`${discussion.id}-${index}`} 
                   src={image} 
-                  alt="Discussion attachment"
-                  className={`discussion-image ${imageLoaded ? 'loaded' : ''}`}
-                  loading="lazy"
-                  onLoad={() => setImageLoaded(true)}
-                  onError={() => {
-                    setImageError(true)
-                    setImageLoaded(true)
-                  }}
-                  style={{ display: imageError ? 'none' : imageLoaded ? 'block' : 'none' }}
+                  alt="Discussion attachment" 
                 />
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
 
