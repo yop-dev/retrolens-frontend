@@ -15,10 +15,12 @@ import { useUser } from '@clerk/clerk-react'
 import { useApiWithAuth } from '@/hooks'
 import { discussionService } from '@/services/api/discussions.service'
 import { cacheService } from '@/services/cache/cache.service'
+import ImageLightbox from '@/components/ui/ImageLightbox'
 import { DiscussionSkeleton } from '@/components/ui/DiscussionSkeleton'
 import type { PageComponent, Discussion, DiscussionCategory } from '@/types'
 import '@/css/pages/Feed.css'
 import '@/css/components/skeleton.css'
+import '@/css/components/feed-images.css'
 
 // Constants
 const DISCUSSIONS_PER_PAGE = 10
@@ -44,7 +46,7 @@ const popularTags = [
 ]
 
 // Individual Image Component with its own loading state
-const DiscussionImage = React.memo<{ src: string; alt: string }>(({ src, alt }) => {
+const DiscussionImage = React.memo<{ src: string; alt: string; onClick?: () => void }>(({ src, alt, onClick }) => {
   const [imageLoaded, setImageLoaded] = useState(false)
   const [imageError, setImageError] = useState(false)
 
@@ -62,6 +64,7 @@ const DiscussionImage = React.memo<{ src: string; alt: string }>(({ src, alt }) 
         src={src} 
         alt={alt}
         className="discussion-image"
+        onClick={onClick}
         onLoad={() => {
           console.log('Image loaded successfully:', src)
           setImageLoaded(true)
@@ -108,12 +111,25 @@ const DiscussionCard = React.memo<{
 
       <div className="discussion-content">
         <h3 className="discussion-title">{discussion.title}</h3>
-        <p className="discussion-excerpt">
-          {discussion.content}
-          {discussion.content && discussion.content.length > 200 && (
-            <button className="read-more-btn">Read More</button>
-          )}
-        </p>
+        {(() => {
+          const normalize = (s: string) => (s || '').replace(/\s+/g, ' ').trim().toLowerCase()
+          const title = discussion.title || ''
+          const content = discussion.content || ''
+          let displayContent = content
+          if (normalize(content).startsWith(normalize(title))) {
+            displayContent = content.slice(title.length).trim()
+          }
+          const shouldShow = displayContent && normalize(displayContent) !== normalize(title)
+          if (!shouldShow) return null
+          const isLong = displayContent.length > 200
+          const excerpt = isLong ? displayContent.slice(0, 200) + '…' : displayContent
+          return (
+            <p className="discussion-excerpt">
+              {excerpt}
+              {isLong && <button className="read-more-btn">Read More</button>}
+            </p>
+          )
+        })()}
 
         {/* Images */}
         {discussion.images && discussion.images.length > 0 && (
@@ -126,7 +142,8 @@ const DiscussionCard = React.memo<{
                   <DiscussionImage 
                     key={`${discussion.id}-img-${index}-${image.substring(image.lastIndexOf('/') + 1, image.lastIndexOf('/') + 10)}`} 
                     src={image} 
-                    alt="Discussion attachment" 
+                    alt="Discussion attachment"
+                    onClick={() => openLightbox(discussion.images, index)} 
                   />
                 )
               })}
@@ -196,6 +213,19 @@ export const FeedOptimized: PageComponent = () => {
   const observerRef = useRef<IntersectionObserver>()
   const loadMoreRef = useRef<HTMLDivElement>(null)
   const usersMapRef = useRef<Map<string, any>>(new Map())
+
+  // Lightbox state
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [lightboxImages, setLightboxImages] = useState<string[]>([])
+  const [lightboxIndex, setLightboxIndex] = useState(0)
+
+  const openLightbox = useCallback((images: string[], index: number) => {
+    setLightboxImages(images)
+    setLightboxIndex(index)
+    setLightboxOpen(true)
+  }, [])
+
+  const closeLightbox = useCallback(() => setLightboxOpen(false), [])
 
   // Helper function to extract images from markdown
   const extractImagesFromBody = useCallback((body: string): string[] => {
@@ -821,6 +851,14 @@ export const FeedOptimized: PageComponent = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {lightboxOpen && (
+        <ImageLightbox
+          images={lightboxImages}
+          initialIndex={lightboxIndex}
+          onClose={closeLightbox}
+        />
       )}
     </div>
   )
