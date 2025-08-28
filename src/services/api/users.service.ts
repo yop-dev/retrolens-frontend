@@ -196,7 +196,7 @@ export class UserService {
    */
   async getUserFollowers(userId: string, token?: string): Promise<UserProfile[]> {
     return apiClient.authenticatedRequest(
-      `${API_ENDPOINTS.USERS}/${userId}/followers`,
+      `${API_ENDPOINTS.USERS}${userId}/followers`,
       token || null
     );
   }
@@ -206,7 +206,7 @@ export class UserService {
    */
   async getUserFollowing(userId: string, token?: string): Promise<UserProfile[]> {
     return apiClient.authenticatedRequest(
-      `${API_ENDPOINTS.USERS}/${userId}/following`,
+      `${API_ENDPOINTS.USERS}${userId}/following`,
       token || null
     );
   }
