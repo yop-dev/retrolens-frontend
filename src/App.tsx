@@ -11,7 +11,7 @@ import { queryClient } from '@/lib/react-query';
 
 // Lazy load components for better performance
 const LazyFeed = lazy(() => import('@/pages/FeedOptimizedV2'));
-const LazyProfile = lazy(() => import('@/pages/ProfileOptimizedV2'));
+const LazyProfile = lazy(() => import('@/pages/ProfileOptimized'));
 const LazyDiscover = lazy(() => import('@/pages/Discover'));
 const LazyCollection = lazy(() => import('@/pages/Collection'));
 
@@ -32,7 +32,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
  */
 const PublicRoute: React.FC<{ children: React.ReactNode; redirectTo?: string }> = ({ 
   children, 
-  redirectTo = ROUTE_PATHS.DASHBOARD 
+  redirectTo = ROUTE_PATHS.FEED 
 }) => (
   <>
     <SignedOut>{children}</SignedOut>
@@ -101,7 +101,7 @@ function AppContent() {
               path={ROUTE_PATHS.DASHBOARD} 
               element={
                 <ProtectedRoute>
-                  <Navigate to={ROUTE_PATHS.PROFILE} replace />
+                  <Navigate to={ROUTE_PATHS.FEED} replace />
                 </ProtectedRoute>
               } 
             />

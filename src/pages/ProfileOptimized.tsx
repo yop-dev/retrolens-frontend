@@ -84,7 +84,7 @@ const CameraCard = React.memo<{ camera: Camera }>(({ camera }) => {
 CameraCard.displayName = 'CameraCard';
 
 export function ProfileOptimized() {
-  const { user } = useUser();
+  const { user, isLoaded: userLoaded } = useUser();
   const { signOut } = useClerk();
   const navigate = useNavigate();
   const { makeAuthenticatedRequest } = useApiWithAuth();
@@ -273,10 +273,18 @@ export function ProfileOptimized() {
 
   // Initial data fetch
   useEffect(() => {
+    // Wait for Clerk to finish loading
+    if (!userLoaded) {
+      return;
+    }
+    
     if (user?.id) {
       fetchUserData();
+    } else {
+      // User is loaded but no user (not logged in)
+      setLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, user, userLoaded, fetchUserData]);
 
   // Memoized callbacks
   const handleOpenEditModal = useCallback(() => {
@@ -436,7 +444,8 @@ export function ProfileOptimized() {
     }
   }, [activeTab, userCameras, userDiscussions]);
 
-  if (loading) {
+  // Show loading state if Clerk is still loading or data is being fetched
+  if (!userLoaded || loading) {
     return (
       <div className="profile-page">
         <div className="mobile-profile-header">

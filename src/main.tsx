@@ -4,7 +4,11 @@ import { ClerkProvider } from '@clerk/clerk-react';
 
 import { AUTH_CONFIG, THEME_CONFIG } from '@/constants';
 import App from './App';
+import { clearAuthOnStartup } from '@/utils/clearAuthOnStartup';
 import './css/index.css'
+
+// Clear authentication on dev startup (before ClerkProvider initializes)
+clearAuthOnStartup();
 
 // Validate required environment variables
 if (!AUTH_CONFIG.CLERK_PUBLISHABLE_KEY) {

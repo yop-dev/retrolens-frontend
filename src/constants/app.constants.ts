@@ -11,11 +11,21 @@ export const APP_CONFIG = {
 /**
  * API configuration constants
  */
+const getApiBaseUrl = () => {
+  // Use relative URLs in development to leverage Vite proxy
+  if (import.meta.env.DEV && window.location.hostname !== 'localhost') {
+    // When accessing from network IP, use relative URLs
+    return '';
+  }
+  // Otherwise use the configured API URL
+  return import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:8000';
+};
+
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:8000',
-  TIMEOUT: 10000,
-  MAX_RETRY_ATTEMPTS: 3,
-  HEALTH_CHECK_TIMEOUT: 5000,
+  BASE_URL: getApiBaseUrl(),
+  TIMEOUT: 30000, // Increased from 10s to 30s for production API
+  MAX_RETRY_ATTEMPTS: 2, // Reduced from 3 to 2 to avoid excessive delays
+  HEALTH_CHECK_TIMEOUT: 10000, // Increased from 5s to 10s
 } as const;
 
 /**

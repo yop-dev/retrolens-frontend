@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth, useUser } from '@clerk/clerk-react';
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Heart,
   MessageCircle,
@@ -13,7 +13,11 @@ import {
   TrendingUp,
   Clock,
   Hash,
-  Eye
+  Eye,
+  Plus,
+  Camera,
+  X,
+  Upload
 } from 'lucide-react';
 
 import { queryKeys } from '@/lib/react-query';
@@ -48,6 +52,13 @@ const FeedOptimizedV2: React.FC = () => {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
   const [sortBy, setSortBy] = useState<'created_at' | 'view_count' | 'comment_count'>('created_at');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isCreatingPost, setIsCreatingPost] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    description: '',
+    imageFile: null as File | null,
+    imagePreview: null as string | null
+  });
   
   // Prefetch hooks for instant navigation
   const prefetchUser = usePrefetchUser();
@@ -75,6 +86,25 @@ const FeedOptimizedV2: React.FC = () => {
     return body.replace(/!\[.*?\]\(.*?\)/g, '').trim();
   }, []);
 
+  // First fetch the list of users the current user is following
+  const { data: followingUsers, isLoading: isLoadingFollowing } = useQuery({
+    queryKey: ['following', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const token = await getToken();
+      try {
+        const following = await userService.getUserFollowing(user.id, token || undefined);
+        console.log('Following users:', following.length);
+        return following;
+      } catch (error) {
+        console.error('Error fetching following list:', error);
+        return [];
+      }
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
   // Use infinite query for pagination
   const {
     data,
@@ -86,35 +116,81 @@ const FeedOptimizedV2: React.FC = () => {
     error,
     refetch
   } = useInfiniteQuery({
-    queryKey: queryKeys.discussions.list({ sortBy, sortOrder: 'desc' }),
+    queryKey: ['feed', sortBy, followingUsers?.map(u => u.id), user?.id],
     queryFn: async ({ pageParam = 0 }) => {
       perf.mark('feed-fetch');
       const token = await getToken();
       
-      // Fetch discussions
-      const discussions = await discussionService.getAllDiscussions(token || undefined, {
-        limit: POSTS_PER_PAGE,
+      // Get the IDs of users being followed, including the current user
+      const followingIds = followingUsers ? followingUsers.map(u => u.id) : [];
+      
+      // Always include the current user's posts in their feed
+      if (user?.id && !followingIds.includes(user.id)) {
+        followingIds.push(user.id);
+      }
+      
+      // If no users to show posts from (shouldn't happen if user is logged in)
+      if (followingIds.length === 0) {
+        perf.measure('feed-fetch');
+        return [];
+      }
+      
+      // Fetch all discussions (we'll filter them client-side for now)
+      // In a production app, you'd want to filter server-side
+      const allDiscussions = await discussionService.getAllDiscussions(token || undefined, {
+        limit: 100, // Fetch more to account for filtering
         page: pageParam,
         sortBy: sortBy as any,
         sortOrder: 'desc'
       });
       
-      // Get unique user IDs
+      // Filter discussions to only those from followed users
+      const discussions = allDiscussions.filter((d: any) => 
+        followingIds.includes(d.user_id)
+      ).slice(0, POSTS_PER_PAGE);
+      
+      // Get unique user IDs and check cache first
       const userIds = [...new Set(discussions.map((d: any) => d.user_id).filter(Boolean))];
+      const usersMap = new Map();
       
-      // Fetch user data in parallel
-      const userPromises = userIds.map(async (userId: string) => {
-        try {
-          const userData = await userService.getUserById(userId, token || undefined);
-          return { userId, data: userData };
-        } catch (error) {
-          console.error(`Failed to fetch user ${userId}:`, error);
-          return { userId, data: null };
+      // Only fetch users that aren't in cache
+      const uncachedUserIds: string[] = [];
+      for (const userId of userIds) {
+        const cachedUser = queryClient.getQueryData(['users', userId]) as UserProfile | undefined;
+        if (cachedUser) {
+          usersMap.set(userId, cachedUser);
+        } else {
+          uncachedUserIds.push(userId);
         }
-      });
+      }
       
-      const userResults = await Promise.all(userPromises);
-      const usersMap = new Map(userResults.map(({ userId, data }) => [userId, data]));
+      // Batch fetch only uncached users (max 5 at a time to avoid timeouts)
+      if (uncachedUserIds.length > 0) {
+        const batchSize = 5;
+        for (let i = 0; i < uncachedUserIds.length; i += batchSize) {
+          const batch = uncachedUserIds.slice(i, i + batchSize);
+          const batchPromises = batch.map(async (userId) => {
+            try {
+              const userData = await userService.getUserById(userId, token || undefined);
+              // Cache the user data
+              queryClient.setQueryData(['users', userId], userData, {
+                staleTime: 10 * 60 * 1000, // 10 minutes
+              });
+              return { userId, data: userData };
+            } catch (error) {
+              // Don't log errors for missing users, it's expected
+              return { userId, data: null };
+            }
+          });
+          
+          const batchResults = await Promise.allSettled(batchPromises);
+          batchResults.forEach((result) => {
+            if (result.status === 'fulfilled' && result.value.data) {
+              usersMap.set(result.value.userId, result.value.data);
+            }
+          });
+        }
+      }
       
       // Transform discussions with user data
       const transformedDiscussions = discussions.map((discussion: any) => {
@@ -149,6 +225,7 @@ const FeedOptimizedV2: React.FC = () => {
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
     cacheTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!user?.id && !!followingUsers, // Only run if user is logged in and we have following list
   });
 
   // Flatten all pages of discussions
@@ -218,6 +295,124 @@ const FeedOptimizedV2: React.FC = () => {
     return postDate.toLocaleDateString();
   };
 
+  // Handle image selection for new post
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+      
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        alert('Image must be less than 10MB');
+        return;
+      }
+      
+      setCreateForm(prev => ({
+        ...prev,
+        imageFile: file,
+        imagePreview: URL.createObjectURL(file)
+      }));
+    }
+  };
+
+  // Handle create post submission
+  const handleCreatePost = async () => {
+    if (!createForm.imageFile || !createForm.description.trim()) {
+      alert('Please add both an image and a description');
+      return;
+    }
+    
+    setIsCreatingPost(true);
+    try {
+      const token = await getToken();
+      let imageUrl = '';
+      
+      // Upload image first using the correct endpoint from API docs
+      if (createForm.imageFile) {
+        const formData = new FormData();
+        formData.append('file', createForm.imageFile);
+        
+        // Using /api/v1/upload/camera-image endpoint as per API docs
+        const uploadResponse = await fetch(
+          `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/upload/camera-image${user?.id ? `?user_id=${user.id}` : ''}`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+            body: formData
+          }
+        );
+        
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.text();
+          console.error('Upload failed:', errorData);
+          throw new Error('Failed to upload image');
+        }
+        
+        const uploadData = await uploadResponse.json();
+        imageUrl = uploadData.url || uploadData.image_url || '';
+      }
+      
+      // Create the discussion/post using the correct endpoint and body structure
+      // Note: API uses 'content' field, not 'body' as shown in the error
+      const discussionData = {
+        title: createForm.description.substring(0, 100) || 'New camera photo',
+        content: imageUrl ? `![Camera Photo](${imageUrl})` : createForm.description,
+        tags: [],  // No hardcoded tags - let users add their own if needed
+        // Note: category_id should be a UUID, not a name. We'll omit it for now
+        // You may want to fetch categories and use the actual ID
+      };
+      
+      // Using /api/v1/discussions/ endpoint with user_id as query param as per API docs
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/discussions/?user_id=${user?.id}`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(discussionData)
+        }
+      );
+      
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Create discussion failed:', errorData);
+        throw new Error('Failed to create post');
+      }
+      
+      // Invalidate queries to refresh feed
+      queryClient.invalidateQueries({ queryKey: ['feed'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.discussions.all });
+      
+      // Clean up and close modal
+      if (createForm.imagePreview) {
+        URL.revokeObjectURL(createForm.imagePreview);
+      }
+      setCreateForm({
+        description: '',
+        imageFile: null,
+        imagePreview: null
+      });
+      setShowCreateModal(false);
+      
+      // Refresh the feed
+      refetch();
+      
+    } catch (error) {
+      console.error('Error creating post:', error);
+      alert('Failed to create post. Please try again.');
+    } finally {
+      setIsCreatingPost(false);
+    }
+  };
+
   // Render a single discussion card
   const renderDiscussionCard = (discussion: FeedPost) => (
     <article
@@ -262,9 +457,12 @@ const FeedOptimizedV2: React.FC = () => {
         <h2 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
           {discussion.title}
         </h2>
-        <p className="text-gray-600 text-sm line-clamp-3">
-          {discussion.body || discussion.content}
-        </p>
+        {/* Only show content if it's different from the title */}
+        {discussion.content && discussion.content.trim() && discussion.content !== discussion.title && (
+          <p className="text-gray-600 text-sm line-clamp-3">
+            {discussion.content}
+          </p>
+        )}
 
         {/* Tags */}
         {discussion.tags && discussion.tags.length > 0 && (
@@ -333,10 +531,133 @@ const FeedOptimizedV2: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Create Post Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">Create New Post</h2>
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="p-1 rounded-md hover:bg-gray-100 transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              {/* Image Upload Area */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Camera Photo
+                </label>
+                {!createForm.imagePreview ? (
+                  <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <Camera className="w-10 h-10 mb-3 text-gray-400" />
+                      <p className="mb-2 text-sm text-gray-500">
+                        <span className="font-semibold">Click to upload</span> or drag and drop
+                      </p>
+                      <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                    </div>
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleImageSelect}
+                    />
+                  </label>
+                ) : (
+                  <div className="relative">
+                    <img
+                      src={createForm.imagePreview}
+                      alt="Preview"
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                    <button
+                      onClick={() => {
+                        if (createForm.imagePreview) {
+                          URL.revokeObjectURL(createForm.imagePreview);
+                        }
+                        setCreateForm(prev => ({
+                          ...prev,
+                          imageFile: null,
+                          imagePreview: null
+                        }));
+                      }}
+                      className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors"
+                    >
+                      <X className="w-4 h-4 text-gray-600" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Description Input */}
+              <div className="mb-6">
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  id="description"
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
+                  placeholder="Tell us about your camera..."
+                  value={createForm.description}
+                  onChange={(e) => setCreateForm(prev => ({ ...prev, description: e.target.value }))}
+                  maxLength={500}
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  {createForm.description.length}/500 characters
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  disabled={isCreatingPost}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreatePost}
+                  className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  disabled={isCreatingPost || !createForm.imageFile || !createForm.description.trim()}
+                >
+                  {isCreatingPost ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Post
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-between">
+            {/* New Post Button */}
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors shadow-sm"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              New Post
+            </button>
+            
             {/* Sort Options */}
             <div className="flex items-center space-x-2">
               <button
@@ -368,7 +689,7 @@ const FeedOptimizedV2: React.FC = () => {
 
       {/* Main Content */}
       <main className="max-w-2xl mx-auto px-4 py-6">
-        {isLoading ? (
+        {(isLoading || isLoadingFollowing) ? (
           <FeedSkeleton />
         ) : isError ? (
           <div className="text-center py-12">
@@ -382,8 +703,31 @@ const FeedOptimizedV2: React.FC = () => {
           </div>
         ) : allDiscussions.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No discussions yet</p>
-            <p className="text-gray-400 mt-2">Be the first to start a conversation!</p>
+            {followingUsers && followingUsers.length === 0 ? (
+              <>
+                <p className="text-gray-500 text-lg mb-2">Welcome to your feed!</p>
+                <p className="text-gray-400 mb-4">Start by creating your first post or follow other users to see their posts here!</p>
+                <div className="flex justify-center gap-3">
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700"
+                  >
+                    Create Post
+                  </button>
+                  <button
+                    onClick={() => navigate('/discover')}
+                    className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                  >
+                    Discover Users
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-gray-500 text-lg">No new posts</p>
+                <p className="text-gray-400 mt-2">Check back later for updates from people you follow</p>
+              </>
+            )}
           </div>
         ) : (
           <div className="space-y-4">

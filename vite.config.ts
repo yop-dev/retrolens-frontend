@@ -83,6 +83,19 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true,
+    proxy: {
+      '/api': {
+        target: 'https://web-production-2441.up.railway.app',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path,
+      },
+      '/health': {
+        target: 'https://web-production-2441.up.railway.app',
+        changeOrigin: true,
+        secure: true,
+      },
+    },
   },
   preview: {
     port: 4173,
