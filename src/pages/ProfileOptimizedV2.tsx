@@ -120,58 +120,86 @@ export function ProfileOptimizedV2() {
   const [editAvatarPreview, setEditAvatarPreview] = useState<string | null>(null);
 
   // Determine profile to load
-  const profileUsername = username || currentUser?.username || currentUser?.id;
   const isOwnProfile = !username || username === currentUser?.username;
 
   // Fetch user profile with React Query
   const { data: userProfile, isLoading: isLoadingProfile } = useQuery({
-    queryKey: queryKeys.users.byUsername(profileUsername!),
+    queryKey: username ? queryKeys.users.byUsername(username) : queryKeys.users.byId(currentUser?.id || 'current'),
     queryFn: async () => {
       perf.mark('profile-fetch');
-      const token = await currentUser?.getToken();
       
+      // Wait for currentUser to be available if loading own profile
+      if (!username && !currentUser) {
+        return null;
+      }
+      
+      const token = await currentUser?.getToken();
       let profile: UserProfile | null = null;
       
-      // Try to fetch profile
       try {
         if (username) {
+          // Fetch other user's profile by username
           profile = await userService.getUserByUsername(username, token || undefined);
         } else if (currentUser?.id) {
-          profile = await userService.getUserById(currentUser.id, token || undefined);
+          // Fetch current user's profile by ID
+          try {
+            profile = await userService.getUserById(currentUser.id, token || undefined);
+          } catch (error) {
+            // Try syncing with backend if user doesn't exist
+            try {
+              const syncResponse = await userService.syncUser({
+                clerk_id: currentUser.id,
+                email: currentUser.primaryEmailAddress?.emailAddress || '',
+                username: currentUser.username || currentUser.firstName || 
+                         currentUser.primaryEmailAddress?.emailAddress?.split('@')[0] || 
+                         `user_${currentUser.id.slice(-8)}`,
+                full_name: currentUser.fullName || `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim(),
+                avatar_url: currentUser.imageUrl || ''
+              }, token || undefined);
+              
+              // After sync, fetch the profile again
+              profile = await userService.getUserById(currentUser.id, token || undefined);
+            } catch (syncError) {
+              console.error('Failed to sync user:', syncError);
+            }
+          }
         }
       } catch (error) {
-        // Create fallback profile for current user
-        if (isOwnProfile && currentUser) {
-          const fallbackUsername = currentUser.username || 
-            currentUser.firstName || 
-            currentUser.primaryEmailAddress?.emailAddress?.split('@')[0] || 
-            `user_${currentUser.id?.slice(-8)}`;
-          
-          profile = {
-            id: currentUser.id,
-            username: fallbackUsername,
-            display_name: currentUser.fullName || fallbackUsername,
-            bio: '',
-            avatar_url: currentUser.imageUrl || '',
-            location: '',
-            expertise_level: 'beginner',
-            website_url: '',
-            instagram_url: '',
-            created_at: new Date().toISOString(),
-            camera_count: 0,
-            discussion_count: 0,
-            follower_count: 0,
-            following_count: 0
-          };
-        }
+        console.error('Error fetching profile:', error);
+      }
+      
+      // Create fallback profile if still no profile and it's the current user
+      if (!profile && isOwnProfile && currentUser) {
+        const fallbackUsername = currentUser.username || 
+          currentUser.firstName || 
+          currentUser.primaryEmailAddress?.emailAddress?.split('@')[0] || 
+          `user_${currentUser.id?.slice(-8)}`;
+        
+        profile = {
+          id: currentUser.id,
+          username: fallbackUsername,
+          display_name: currentUser.fullName || fallbackUsername,
+          bio: '',
+          avatar_url: currentUser.imageUrl || '',
+          location: '',
+          expertise_level: 'beginner',
+          website_url: '',
+          instagram_url: '',
+          created_at: new Date().toISOString(),
+          camera_count: 0,
+          discussion_count: 0,
+          follower_count: 0,
+          following_count: 0
+        };
       }
       
       perf.measure('profile-fetch');
       return profile;
     },
-    enabled: !!profileUsername,
+    enabled: !!currentUser || !!username,
     staleTime: 3 * 60 * 1000, // 3 minutes
     cacheTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2,
   });
 
   // Fetch user cameras
@@ -239,7 +267,9 @@ export function ProfileOptimizedV2() {
       return userService.updateUser(userProfile?.id!, data, token || undefined);
     },
     onSuccess: (updatedProfile) => {
-      queryClient.setQueryData(queryKeys.users.byUsername(profileUsername!), updatedProfile);
+      if (username) {
+        queryClient.setQueryData(queryKeys.users.byUsername(username), updatedProfile);
+      }
       queryClient.setQueryData(queryKeys.users.byId(userProfile?.id!), updatedProfile);
       setShowEditModal(false);
     },
