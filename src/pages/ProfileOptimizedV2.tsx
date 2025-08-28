@@ -123,7 +123,7 @@ export function ProfileOptimizedV2() {
   const isOwnProfile = !username || username === currentUser?.username;
 
   // Fetch user profile with React Query
-  const { data: userProfile, isLoading: isLoadingProfile } = useQuery({
+  const { data: userProfile, isLoading: isLoadingProfile, error: profileError } = useQuery({
     queryKey: username ? queryKeys.users.byUsername(username) : queryKeys.users.byId(currentUser?.id || 'current'),
     queryFn: async () => {
       perf.mark('profile-fetch');
@@ -136,61 +136,89 @@ export function ProfileOptimizedV2() {
       const token = await currentUser?.getToken();
       let profile: UserProfile | null = null;
       
+      // Check if viewing own profile
+      const viewingOwnProfile = !username || username === currentUser?.username;
+      
       try {
-        if (username) {
+        if (username && !viewingOwnProfile) {
           // Fetch other user's profile by username
           profile = await userService.getUserByUsername(username, token || undefined);
         } else if (currentUser?.id) {
           // Fetch current user's profile by ID
           try {
             profile = await userService.getUserById(currentUser.id, token || undefined);
-          } catch (error) {
+          } catch (error: any) {
+            console.log('User not found in backend, attempting to sync...', error);
+            
             // Try syncing with backend if user doesn't exist
+            const syncUsername = currentUser.username || 
+                               currentUser.firstName || 
+                               currentUser.primaryEmailAddress?.emailAddress?.split('@')[0] || 
+                               `user_${currentUser.id.slice(-8)}`;
+            
             try {
               const syncResponse = await userService.syncUser({
                 clerk_id: currentUser.id,
                 email: currentUser.primaryEmailAddress?.emailAddress || '',
-                username: currentUser.username || currentUser.firstName || 
-                         currentUser.primaryEmailAddress?.emailAddress?.split('@')[0] || 
-                         `user_${currentUser.id.slice(-8)}`,
-                full_name: currentUser.fullName || `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim(),
+                username: syncUsername,
+                full_name: currentUser.fullName || `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || syncUsername,
                 avatar_url: currentUser.imageUrl || ''
               }, token || undefined);
+              
+              console.log('User synced successfully:', syncResponse);
               
               // After sync, fetch the profile again
               profile = await userService.getUserById(currentUser.id, token || undefined);
             } catch (syncError) {
-              console.error('Failed to sync user:', syncError);
+              console.error('Failed to sync user, using fallback:', syncError);
+              
+              // Create fallback profile if sync fails
+              profile = {
+                id: currentUser.id,
+                username: syncUsername,
+                display_name: currentUser.fullName || syncUsername,
+                bio: '',
+                avatar_url: currentUser.imageUrl || '',
+                location: '',
+                expertise_level: 'beginner',
+                website_url: '',
+                instagram_url: '',
+                created_at: new Date().toISOString(),
+                camera_count: 0,
+                discussion_count: 0,
+                follower_count: 0,
+                following_count: 0
+              };
             }
           }
         }
       } catch (error) {
-        console.error('Error fetching profile:', error);
-      }
-      
-      // Create fallback profile if still no profile and it's the current user
-      if (!profile && isOwnProfile && currentUser) {
-        const fallbackUsername = currentUser.username || 
-          currentUser.firstName || 
-          currentUser.primaryEmailAddress?.emailAddress?.split('@')[0] || 
-          `user_${currentUser.id?.slice(-8)}`;
+        console.error('Error in profile fetch:', error);
         
-        profile = {
-          id: currentUser.id,
-          username: fallbackUsername,
-          display_name: currentUser.fullName || fallbackUsername,
-          bio: '',
-          avatar_url: currentUser.imageUrl || '',
-          location: '',
-          expertise_level: 'beginner',
-          website_url: '',
-          instagram_url: '',
-          created_at: new Date().toISOString(),
-          camera_count: 0,
-          discussion_count: 0,
-          follower_count: 0,
-          following_count: 0
-        };
+        // If viewing own profile and error occurs, create fallback
+        if (viewingOwnProfile && currentUser) {
+          const fallbackUsername = currentUser.username || 
+            currentUser.firstName || 
+            currentUser.primaryEmailAddress?.emailAddress?.split('@')[0] || 
+            `user_${currentUser.id?.slice(-8)}`;
+          
+          profile = {
+            id: currentUser.id,
+            username: fallbackUsername,
+            display_name: currentUser.fullName || fallbackUsername,
+            bio: '',
+            avatar_url: currentUser.imageUrl || '',
+            location: '',
+            expertise_level: 'beginner',
+            website_url: '',
+            instagram_url: '',
+            created_at: new Date().toISOString(),
+            camera_count: 0,
+            discussion_count: 0,
+            follower_count: 0,
+            following_count: 0
+          };
+        }
       }
       
       perf.measure('profile-fetch');
@@ -199,7 +227,7 @@ export function ProfileOptimizedV2() {
     enabled: !!currentUser || !!username,
     staleTime: 3 * 60 * 1000, // 3 minutes
     cacheTime: 5 * 60 * 1000, // 5 minutes
-    retry: 2,
+    retry: false, // Don't retry, handle errors gracefully
   });
 
   // Fetch user cameras
