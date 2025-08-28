@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
@@ -12,16 +12,19 @@ import {
   MoreVertical,
   TrendingUp,
   Clock,
-  Hash
+  Hash,
+  Eye
 } from 'lucide-react';
 
 import { queryKeys } from '@/lib/react-query';
 import { discussionService } from '@/services/api/discussions.service';
+import { userService } from '@/services/api/users.service';
 import { FeedSkeleton, DiscussionCardSkeleton } from '@/components/ui/Skeletons';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { usePrefetchUser, usePrefetchDiscussion } from '@/hooks/useOptimizedQueries';
 import { perf, throttle } from '@/utils/performance';
-import type { Discussion } from '@/types';
+import { formatRelativeTime } from '@/utils/date.utils';
+import type { Discussion, UserProfile } from '@/types';
 
 const POSTS_PER_PAGE = 10;
 
@@ -30,6 +33,13 @@ interface FeedPost extends Discussion {
     username: string;
     avatar?: string;
   };
+  timeAgo?: string;
+  stats?: {
+    views: number;
+    replies: number;
+    likes: number;
+  };
+  category?: string;
 }
 
 const FeedOptimizedV2: React.FC = () => {
@@ -46,6 +56,25 @@ const FeedOptimizedV2: React.FC = () => {
   // Intersection observer for infinite scroll
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
+  // Helper function to extract images from markdown
+  const extractImagesFromBody = useCallback((body: string): string[] => {
+    const imageRegex = /!\[.*?\]\((.*?)\)/g;
+    const images = [];
+    let match;
+    while ((match = imageRegex.exec(body)) !== null) {
+      const imageUrl = match[1]?.replace(/\?$/, '').trim() || '';
+      if (imageUrl) {
+        images.push(imageUrl);
+      }
+    }
+    return images;
+  }, []);
+
+  // Helper function to remove markdown images from text
+  const removeImagesFromContent = useCallback((body: string): string => {
+    return body.replace(/!\[.*?\]\(.*?\)/g, '').trim();
+  }, []);
+
   // Use infinite query for pagination
   const {
     data,
@@ -61,14 +90,58 @@ const FeedOptimizedV2: React.FC = () => {
     queryFn: async ({ pageParam = 0 }) => {
       perf.mark('feed-fetch');
       const token = await getToken();
+      
+      // Fetch discussions
       const discussions = await discussionService.getAllDiscussions(token || undefined, {
         limit: POSTS_PER_PAGE,
         page: pageParam,
         sortBy: sortBy as any,
         sortOrder: 'desc'
       });
+      
+      // Get unique user IDs
+      const userIds = [...new Set(discussions.map((d: any) => d.user_id).filter(Boolean))];
+      
+      // Fetch user data in parallel
+      const userPromises = userIds.map(async (userId: string) => {
+        try {
+          const userData = await userService.getUserById(userId, token || undefined);
+          return { userId, data: userData };
+        } catch (error) {
+          console.error(`Failed to fetch user ${userId}:`, error);
+          return { userId, data: null };
+        }
+      });
+      
+      const userResults = await Promise.all(userPromises);
+      const usersMap = new Map(userResults.map(({ userId, data }) => [userId, data]));
+      
+      // Transform discussions with user data
+      const transformedDiscussions = discussions.map((discussion: any) => {
+        const userData = usersMap.get(discussion.user_id);
+        const bodyContent = discussion.content || discussion.body || '';
+        const extractedImages = extractImagesFromBody(bodyContent);
+        const cleanContent = removeImagesFromContent(bodyContent);
+        
+        return {
+          ...discussion,
+          author: {
+            username: userData?.username || userData?.full_name || discussion.username || 'Anonymous',
+            avatar: userData?.avatar_url || userData?.image_url || '/default-avatar.jpg'
+          },
+          images: (discussion.images && discussion.images.length > 0) ? discussion.images : extractedImages,
+          content: cleanContent,
+          stats: {
+            views: discussion.view_count || 0,
+            replies: discussion.comment_count || 0,
+            likes: discussion.like_count || 0
+          },
+          category: discussion.category_name || 'General'
+        };
+      });
+      
       perf.measure('feed-fetch');
-      return discussions;
+      return transformedDiscussions;
     },
     getNextPageParam: (lastPage, pages) => {
       if (lastPage.length < POSTS_PER_PAGE) return undefined;
