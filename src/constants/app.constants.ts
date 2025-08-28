@@ -53,7 +53,7 @@ export const API_ENDPOINTS = {
   HEALTH: '/health',
   
   // Users
-  USERS: '/api/v1/users',
+  USERS: '/api/v1/users/',
   USER_SYNC: '/api/v1/users/sync',
   USER_BY_ID: (id: string) => `/api/v1/users/${id}`,
   USER_BY_USERNAME: (username: string) => `/api/v1/users/username/${username}`,
@@ -62,20 +62,20 @@ export const API_ENDPOINTS = {
   USER_UPDATE: (id: string) => `/api/v1/users/${id}`,
   
   // Cameras
-  CAMERAS: '/api/v1/cameras',
+  CAMERAS: '/api/v1/cameras/',
   CAMERA_BY_ID: (id: string) => `/api/v1/cameras/${id}`,
   USER_CAMERAS: (userId: string) => `/api/v1/users/${userId}/cameras`, // Note: Not implemented in backend
   
   // Discussions
-  DISCUSSIONS: '/api/v1/discussions',
+  DISCUSSIONS: '/api/v1/discussions/',
   DISCUSSION_BY_ID: (id: string) => `/api/v1/discussions/${id}`,
   DISCUSSION_COMMENTS: (id: string) => `/api/v1/discussions/${id}/comments`, // Note: Not implemented in backend
   
   // Categories
-  CATEGORIES: '/api/v1/categories',
+  CATEGORIES: '/api/v1/categories/',
   
   // Comments
-  COMMENTS: '/api/v1/comments',
+  COMMENTS: '/api/v1/comments/',
   
   // Upload endpoints
   UPLOAD_CAMERA_IMAGE: '/api/v1/upload/camera-image',
