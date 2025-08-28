@@ -23,6 +23,7 @@ export class ApiClient {
   constructor(baseURL?: string) {
     this.baseURL = baseURL || API_CONFIG.BASE_URL;
     this.defaultTimeout = API_CONFIG.TIMEOUT;
+    console.log('[API Debug] ApiClient initialized with baseURL:', this.baseURL);
   }
 
   /**
@@ -42,8 +43,21 @@ export class ApiClient {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
 
+      // Use endpoint as-is since backend now has redirect_slashes=False
+      const normalizedEndpoint = endpoint;
+
+      // Debug logging
+      const fullUrl = `${this.baseURL}${normalizedEndpoint}`;
+      console.log('[API Debug] Making request:', {
+        baseURL: this.baseURL,
+        originalEndpoint: endpoint,
+        normalizedEndpoint,
+        fullUrl,
+        method: fetchConfig.method || 'GET'
+      });
+
       try {
-        const response = await fetch(`${this.baseURL}${endpoint}`, {
+        const response = await fetch(fullUrl, {
           ...fetchConfig,
           signal: controller.signal,
           headers: {
@@ -150,14 +164,17 @@ export class ApiClient {
     token: string | null,
     config: RequestConfig = {}
   ): Promise<T> {
-    const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+    const headers: HeadersInit = {
+      ...(config.headers as Record<string, string>),
+    };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
 
     return this.request<T>(endpoint, {
       ...config,
-      headers: {
-        ...authHeaders,
-        ...config.headers,
-      },
+      headers,
       retry: {
         maxAttempts: API_CONFIG.MAX_RETRY_ATTEMPTS,
         backoffMs: 1000,

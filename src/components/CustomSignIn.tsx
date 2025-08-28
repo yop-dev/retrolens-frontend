@@ -30,7 +30,9 @@ export function CustomSignIn({ onClose }: { onClose: () => void }) {
       })
 
       if (result.status === 'complete') {
-        await setActive({ session: result.createdSessionId })
+        if (setActive) {
+          await setActive({ session: result.createdSessionId })
+        }
         navigate('/feed')
         onClose()
       } else {
@@ -92,7 +94,9 @@ export function CustomSignIn({ onClose }: { onClose: () => void }) {
 
       if (result.status === 'complete') {
         console.log('Sign up complete, setting active session...')
-        await setActive({ session: result.createdSessionId })
+        if (setActive) {
+          await setActive({ session: result.createdSessionId })
+        }
         navigate('/feed')
         onClose()
       } else if (result.status === 'missing_requirements') {
@@ -148,7 +152,9 @@ export function CustomSignIn({ onClose }: { onClose: () => void }) {
       })
 
       if (result.status === 'complete') {
-        await setActive({ session: result.createdSessionId })
+        if (setActive) {
+          await setActive({ session: result.createdSessionId })
+        }
         navigate('/feed')
         onClose()
       } else {

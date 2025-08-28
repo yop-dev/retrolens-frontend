@@ -180,6 +180,13 @@ export const VALIDATION_CONFIG = {
   BIO: {
     MAX_LENGTH: 500,
   },
+  
+  DISCUSSION: {
+    TITLE_MIN_LENGTH: 5,
+    TITLE_MAX_LENGTH: 200,
+    BODY_MIN_LENGTH: 10,
+    BODY_MAX_LENGTH: 10000,
+  },
 } as const;
 
 /**

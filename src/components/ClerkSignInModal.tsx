@@ -33,13 +33,11 @@ export function ClerkSignInModal({ onClose }: { onClose: () => void }) {
             }
           }}
           routing="hash"
-          path="/sign-in"
           signUpUrl="/sign-up"
           afterSignInUrl="/feed"
           redirectUrl="/feed"
           initialValues={{
-            emailAddress: '',
-            password: ''
+            emailAddress: ''
           }}
         />
       </div>

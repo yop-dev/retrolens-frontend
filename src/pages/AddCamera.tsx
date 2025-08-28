@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera as CameraIcon, Upload, X } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
 import { useApiWithAuth } from '@/hooks';
-import { cameraService } from '@/services/api/cameras.service';
 import { API_ENDPOINTS, CAMERA_CONFIG } from '@/constants';
 import '@/css/pages/AddCamera.css';
 
@@ -81,7 +80,9 @@ export function AddCamera() {
 
   // Remove selected image
   const removeImage = (index: number) => {
-    URL.revokeObjectURL(imagePreviewUrls[index]);
+    if (imagePreviewUrls[index]) {
+      URL.revokeObjectURL(imagePreviewUrls[index]);
+    }
     setSelectedImages(prev => prev.filter((_, i) => i !== index));
     setImagePreviewUrls(prev => prev.filter((_, i) => i !== index));
   };
@@ -150,7 +151,10 @@ export function AddCamera() {
       if (selectedImages.length > 0) {
         for (let i = 0; i < selectedImages.length; i++) {
           const formData = new FormData();
-          formData.append('file', selectedImages[i]);
+          const file = selectedImages[i];
+          if (file) {
+            formData.append('file', file);
+          }
 
           try {
             const uploadResponse = await makeAuthenticatedRequest(async (token) => {

@@ -4,7 +4,7 @@ import { Suspense, lazy, useEffect, useState } from 'react';
 
 import { ROUTE_PATHS } from '@/constants';
 import { Header, AuthWrapper } from '@/components';
-import { Landing, Dashboard, Profile, Search, Feed, Discover, Collection, AddCamera } from '@/pages';
+import { Landing, Search, AddCamera } from '@/pages';
 
 // Lazy load components for better performance
 const LazyFeed = lazy(() => import('@/pages/FeedOptimized'));

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { 
   Eye, 
   MessageCircle, 
@@ -14,10 +14,12 @@ import {
 import { useUser } from '@clerk/clerk-react'
 import { useApiWithAuth } from '@/hooks'
 import { discussionService } from '@/services/api/discussions.service'
+import { userService } from '@/services/api/users.service'
 import { cacheService } from '@/services/cache/cache.service'
 import ImageLightbox from '@/components/ui/ImageLightbox'
 import { DiscussionSkeleton } from '@/components/ui/DiscussionSkeleton'
-import type { PageComponent, Discussion, DiscussionCategory } from '@/types'
+import { formatRelativeTime } from '@/utils/date.utils'
+import type { PageComponent, DiscussionFeedItem } from '@/types'
 import '@/css/pages/Feed.css'
 import '@/css/components/skeleton.css'
 import '@/css/components/feed-images.css'
@@ -58,9 +60,15 @@ const DiscussionImage = React.memo<{ src: string; alt: string; onClick?: () => v
   return (
     <div className="discussion-image-wrapper">
       {!imageLoaded && !imageError && (
-        <div className="skeleton skeleton-image" style={{ height: '200px', minHeight: '200px' }}></div>
+        <div className="skeleton skeleton-image" style={{ 
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%'
+        }}></div>
       )}
-      <img 
+      <img
         src={src} 
         alt={alt}
         className="discussion-image"
@@ -69,7 +77,7 @@ const DiscussionImage = React.memo<{ src: string; alt: string; onClick?: () => v
           console.log('Image loaded successfully:', src)
           setImageLoaded(true)
         }}
-        onError={(e) => {
+        onError={() => {
           console.error('Failed to load image:', src)
           setImageError(true)
         }}
@@ -87,10 +95,11 @@ DiscussionImage.displayName = 'DiscussionImage'
 
 // Memoized Discussion Card Component
 const DiscussionCard = React.memo<{ 
-  discussion: Discussion
+  discussion: DiscussionFeedItem
   onLike: (id: string) => void
   onShare: (id: string) => void
-}>(({ discussion, onLike, onShare }) => {
+  onImageClick: (images: string[], index: number) => void
+}>(({ discussion, onLike, onShare, onImageClick }) => {
   return (
     <div className="discussion-card">
       <div className="discussion-header">
@@ -135,7 +144,7 @@ const DiscussionCard = React.memo<{
         {discussion.images && discussion.images.length > 0 && (
           <div className="discussion-images">
             {discussion.images
-              .filter((img: string) => img && img.trim() !== '')
+              .filter((img) => img && img.trim() !== '')
               .map((image, index) => {
                 console.log('Rendering image in discussion:', discussion.id, 'index:', index, 'url:', image)
                 return (
@@ -143,7 +152,7 @@ const DiscussionCard = React.memo<{
                     key={`${discussion.id}-img-${index}-${image.substring(image.lastIndexOf('/') + 1, image.lastIndexOf('/') + 10)}`} 
                     src={image} 
                     alt="Discussion attachment"
-                    onClick={() => openLightbox(discussion.images, index)} 
+                    onClick={() => onImageClick(discussion.images || [], index)}
                   />
                 )
               })}
@@ -197,7 +206,7 @@ export const FeedOptimized: PageComponent = () => {
   // State
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [discussions, setDiscussions] = useState<Discussion[]>([])
+  const [discussions, setDiscussions] = useState<DiscussionFeedItem[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
@@ -210,7 +219,7 @@ export const FeedOptimized: PageComponent = () => {
   })
   
   // Refs
-  const observerRef = useRef<IntersectionObserver>()
+  const observerRef = useRef<IntersectionObserver | null>(null)
   const loadMoreRef = useRef<HTMLDivElement>(null)
   const usersMapRef = useRef<Map<string, any>>(new Map())
 
@@ -233,7 +242,7 @@ export const FeedOptimized: PageComponent = () => {
     const images = []
     let match
     while ((match = imageRegex.exec(body)) !== null) {
-      const imageUrl = match[1].replace(/\?$/, '').trim()
+      const imageUrl = match[1]?.replace(/\?$/, '').trim() || ''
       if (imageUrl) {
         images.push(imageUrl)
       }
@@ -267,20 +276,9 @@ export const FeedOptimized: PageComponent = () => {
 
       // Fetch from API
       try {
-        const userInfo = await makeAuthenticatedRequest(async (token) => {
-          const response = await fetch(
-            `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/users/${userId}`,
-            {
-              headers: {
-                'Authorization': `Bearer ${token}`
-              }
-            }
-          )
-          if (response.ok) {
-            return response.json()
-          }
-          return null
-        })
+        const userInfo = await makeAuthenticatedRequest(async (token) => 
+          userService.getUserById(userId, token)
+        )
         
         if (userInfo) {
           // Cache the result
@@ -313,7 +311,7 @@ export const FeedOptimized: PageComponent = () => {
     
     // Use cache for initial load only
     if (!isLoadMore && page === 0) {
-      const cached = cacheService.get<Discussion[]>(cacheKey)
+      const cached = cacheService.get<DiscussionFeedItem[]>(cacheKey)
       if (cached && cached.length > 0) {
         setDiscussions(cached)
         setLoading(false)
@@ -335,7 +333,7 @@ export const FeedOptimized: PageComponent = () => {
       if (!followingUserIds) {
         const followingList = await makeAuthenticatedRequest(async (token) => {
           const response = await fetch(
-            `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/follows?follower_id=${user.id}`,
+            `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/follows/?follower_id=${user.id}`,
             {
               headers: {
                 'Authorization': `Bearer ${token}`
@@ -349,16 +347,15 @@ export const FeedOptimized: PageComponent = () => {
         }).catch(() => [])
         
         followingUserIds = followingList.map((f: any) => f.following_id).filter(Boolean)
-        followingUserIds.push(user.id) // Include user's own posts
+        followingUserIds?.push(user.id) // Include user's own posts
         
         // Cache the following list
         cacheService.set(followingCacheKey, followingUserIds, CACHE_TTL * 2)
       }
 
       // Fetch discussions
-      const offset = page * DISCUSSIONS_PER_PAGE
       const allDiscussions = await makeAuthenticatedRequest(async (token) =>
-        discussionService.getRecentDiscussions(token, DISCUSSIONS_PER_PAGE, offset)
+        discussionService.getRecentDiscussions(token, DISCUSSIONS_PER_PAGE)
       )
       
       if (!allDiscussions || allDiscussions.length === 0) {
@@ -368,7 +365,7 @@ export const FeedOptimized: PageComponent = () => {
 
       // Filter discussions from followed users
       const filteredDiscussions = allDiscussions.filter((discussion: any) => 
-        followingUserIds.includes(discussion.user_id)
+        followingUserIds?.includes(discussion.user_id)
       )
       
       // Get unique user IDs
@@ -378,11 +375,16 @@ export const FeedOptimized: PageComponent = () => {
       const usersMap = await fetchUserData(userIds)
       
       // Transform discussions
-      const transformedDiscussions = filteredDiscussions.map((discussion: any) => {
+      const transformedDiscussions: DiscussionFeedItem[] = filteredDiscussions.map((discussion: any) => {
         const userData = usersMap.get(discussion.user_id)
         const bodyContent = discussion.content || discussion.body || ''
         const extractedImages = extractImagesFromBody(bodyContent)
         const cleanContent = removeImagesFromContent(bodyContent)
+        
+        // Calculate relative time from created_at timestamp
+        const timeAgo = discussion.created_at 
+          ? formatRelativeTime(discussion.created_at)
+          : 'Recently'
         
         return {
           ...discussion,
@@ -390,7 +392,7 @@ export const FeedOptimized: PageComponent = () => {
             username: userData?.username || userData?.full_name || discussion.username || 'Unknown',
             avatar: userData?.avatar_url || userData?.image_url || '/api/placeholder/32/32'
           },
-          timeAgo: discussion.timeAgo || 'Recently',
+          timeAgo,
           stats: discussion.stats || {
             views: 0,
             replies: 0,
@@ -398,7 +400,8 @@ export const FeedOptimized: PageComponent = () => {
           },
           tags: discussion.tags || [],
           images: (discussion.images && discussion.images.length > 0) ? discussion.images : extractedImages,
-          content: cleanContent || discussion.title || ''
+          content: cleanContent || discussion.title || '',
+          category: discussion.category_name || 'General'
         }
       })
       
@@ -443,7 +446,7 @@ export const FeedOptimized: PageComponent = () => {
 
     const observer = new IntersectionObserver(
       entries => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+        if (entries[0]?.isIntersecting && hasMore && !loadingMore) {
           setPage(prev => prev + 1)
         }
       },
@@ -474,9 +477,13 @@ export const FeedOptimized: PageComponent = () => {
   const handleLike = useCallback((discussionId: string) => {
     console.log('Like discussion:', discussionId)
     // Optimistic update
-    setDiscussions(prev => prev.map(d => 
-      d.id === discussionId 
-        ? { ...d, stats: { ...d.stats, likes: (d.stats?.likes || 0) + 1 } }
+    setDiscussions(prev => prev.map(d =>
+      d.id === discussionId
+        ? { ...d, stats: { 
+            views: d.stats?.views || 0,
+            replies: d.stats?.replies || 0,
+            likes: (d.stats?.likes || 0) + 1 
+          } }
         : d
     ))
   }, [])
@@ -502,7 +509,7 @@ export const FeedOptimized: PageComponent = () => {
         
         const uploadResponse = await makeAuthenticatedRequest(async (token) => {
           const response = await fetch(
-            `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/upload/camera-image?user_id=${user?.id}`,
+            `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/upload/camera-image/?user_id=${user?.id}`,
             {
               method: 'POST',
               headers: {
@@ -531,7 +538,7 @@ export const FeedOptimized: PageComponent = () => {
         }
         
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/discussions?user_id=${user?.id}`,
+          `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/discussions/?user_id=${user?.id}`,
           {
             method: 'POST',
             headers: {
@@ -558,7 +565,7 @@ export const FeedOptimized: PageComponent = () => {
           username: user?.username || user?.firstName || 'You',
           avatar: user?.imageUrl || '/default-avatar.png'
         },
-        timeAgo: 'Just now',
+        timeAgo: 'just now',
         stats: {
           views: 0,
           replies: 0,
@@ -675,6 +682,17 @@ export const FeedOptimized: PageComponent = () => {
 
         {/* Main Content */}
         <main className="feed-main">
+          {/* Create Post Banner for Desktop */}
+          <div className="discussion-card create-post-banner desktop-only">
+            <button 
+              className="btn btn-primary"
+              onClick={() => setShowCreateModal(true)}
+            >
+              <Plus size={18} />
+              <span>Create a post</span>
+            </button>
+          </div>
+
           {/* Create Post Button for Mobile */}
           <button 
             className="mobile-create-btn"
@@ -716,6 +734,7 @@ export const FeedOptimized: PageComponent = () => {
                     discussion={discussion}
                     onLike={handleLike}
                     onShare={handleShare}
+                    onImageClick={openLightbox}
                   />
                 ))}
                 

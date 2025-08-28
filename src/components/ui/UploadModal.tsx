@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { Upload, X, Image, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
+import { Upload, X, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import type { BaseComponentProps } from '@/types';
 
 interface UploadModalProps extends BaseComponentProps {

@@ -120,3 +120,22 @@ export interface DiscussionWithDetails extends Discussion {
   comments: DiscussionComment[];
   category?: DiscussionCategory;
 }
+
+/**
+ * Extended discussion for feed display
+ */
+export interface DiscussionFeedItem extends Discussion {
+  author?: {
+    username: string;
+    avatar: string;
+  };
+  timeAgo?: string;
+  category?: string;
+  content?: string;
+  images?: string[];
+  stats?: {
+    views: number;
+    replies: number;
+    likes: number;
+  };
+}

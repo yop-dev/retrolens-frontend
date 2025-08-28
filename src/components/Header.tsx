@@ -1,4 +1,4 @@
-import { SignedIn, SignedOut, SignInButton, UserButton, useUser, useClerk } from '@clerk/clerk-react'
+import { SignedIn, SignedOut, useUser, useClerk } from '@clerk/clerk-react'
 import { Camera, Search, Bell, User, Home, Compass, FolderOpen, LogOut, ChevronDown } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { CustomSignIn } from '../components/CustomSignIn'

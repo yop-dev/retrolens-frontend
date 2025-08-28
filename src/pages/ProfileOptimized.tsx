@@ -362,7 +362,7 @@ export function ProfileOptimized() {
       const updatedProfile = await makeAuthenticatedRequest(async (token) => 
         apiClient.authenticatedRequest(
           API_ENDPOINTS.USER_UPDATE(userProfile.id),
-          token,
+          token || null,
           {
             method: 'PATCH',
             body: JSON.stringify(updateData)
@@ -371,7 +371,7 @@ export function ProfileOptimized() {
       );
 
       // Update local state and cache
-      setUserProfile(updatedProfile);
+      setUserProfile(updatedProfile as UserProfile);
       cacheService.invalidateUserCache(userProfile.id);
       setShowEditModal(false);
       
@@ -396,7 +396,7 @@ export function ProfileOptimized() {
         await makeAuthenticatedRequest(async (token) => 
           apiClient.authenticatedRequest(
             API_ENDPOINTS.USER_UNFOLLOW(userProfile.id),
-            token,
+            token || null,
             { method: 'DELETE', body: '{}' }
           )
         );
@@ -404,7 +404,7 @@ export function ProfileOptimized() {
         await makeAuthenticatedRequest(async (token) => 
           apiClient.authenticatedRequest(
             API_ENDPOINTS.USER_FOLLOW(userProfile.id),
-            token,
+            token || null,
             { method: 'POST', body: '{}' }
           )
         );

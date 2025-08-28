@@ -1,34 +1,62 @@
 /* Feed images: uniform grid + lightbox styles */
 
-/* Image grid */
+/* Image grid container */
 .discussion-images {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 10px;
-}
-
-/* Wrapper enforces square aspect ratio for uniformity */
-.discussion-image-wrapper {
-  position: relative;
+  margin-top: 12px;
   width: 100%;
-  aspect-ratio: 1 / 1;
-  overflow: hidden;
-  border-radius: 10px;
-  background: rgba(0,0,0,0.06);
 }
 
+/* Each image wrapper */
+.discussion-image-wrapper {
+  flex: 1 1 calc(50% - 5px);
+  max-width: calc(50% - 5px);
+  min-width: 200px;
+  height: 250px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #f0f0f0;
+  cursor: pointer;
+}
+
+/* Single image takes full width */
+.discussion-images .discussion-image-wrapper:only-child {
+  flex: 1 1 100%;
+  max-width: 100%;
+  height: 400px;
+}
+
+/* Dark mode */
 @media (prefers-color-scheme: dark) {
   .discussion-image-wrapper {
-    background: rgba(255,255,255,0.06);
+    background: #1a1a1a;
   }
 }
 
-.discussion-image-wrapper img.discussion-image {
+/* The actual image */
+.discussion-image-wrapper .discussion-image {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* uniformly crop */
-  display: block;
+  object-fit: cover;
   cursor: zoom-in;
+  transition: transform 0.2s ease, opacity 0.3s ease;
+}
+
+.discussion-image-wrapper:hover .discussion-image {
+  transform: scale(1.05);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .discussion-image-wrapper {
+    flex: 1 1 100%;
+    max-width: 100%;
+    min-width: unset;
+    height: 300px;
+  }
 }
 
 /* Lightbox */
