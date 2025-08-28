@@ -11,7 +11,7 @@ import { queryClient } from '@/lib/react-query';
 
 // Lazy load components for better performance
 const LazyFeed = lazy(() => import('@/pages/FeedOptimizedV2'));
-const LazyProfile = lazy(() => import('@/pages/ProfileOptimized'));
+const LazyProfile = lazy(() => import('@/pages/ProfileOptimizedV2'));
 const LazyDiscover = lazy(() => import('@/pages/Discover'));
 const LazyCollection = lazy(() => import('@/pages/Collection'));
 
