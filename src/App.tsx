@@ -1,13 +1,16 @@
 import { SignedIn, SignedOut } from '@clerk/clerk-react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Suspense, lazy, useEffect, useState } from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 import { ROUTE_PATHS } from '@/constants';
 import { Header, AuthWrapper } from '@/components';
 import { Landing, Search, AddCamera } from '@/pages';
+import { queryClient } from '@/lib/react-query';
 
 // Lazy load components for better performance
-const LazyFeed = lazy(() => import('@/pages/FeedOptimized'));
+const LazyFeed = lazy(() => import('@/pages/FeedOptimizedV2'));
 const LazyProfile = lazy(() => import('@/pages/ProfileOptimized'));
 const LazyDiscover = lazy(() => import('@/pages/Discover'));
 const LazyCollection = lazy(() => import('@/pages/Collection'));
@@ -175,11 +178,16 @@ function AppContent() {
  */
 function App() {
   return (
-    <BrowserRouter>
-      <AuthWrapper>
-        <AppContent />
-      </AuthWrapper>
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AuthWrapper>
+          <AppContent />
+        </AuthWrapper>
+      </BrowserRouter>
+      {process.env.NODE_ENV === 'development' && (
+        <ReactQueryDevtools initialIsOpen={false} />
+      )}
+    </QueryClientProvider>
   );
 }
 
