@@ -11,6 +11,7 @@
 - [Cameras](#cameras)
 - [Discussions](#discussions)
 - [Comments](#comments)
+- [Likes](#likes)
 - [Categories](#categories)
 - [File Upload](#file-upload)
 - [Data Models](#data-models)
@@ -188,7 +189,96 @@ Authorization: Bearer <your-clerk-token>
 
 #### List Comments
 - **GET** `/api/v1/comments/`
-- **Response**: Array (placeholder endpoint)
+- **Query Parameters**:
+  - `discussion_id` (string, optional): Get comments for a specific discussion
+  - `camera_id` (string, optional): Get comments for a specific camera
+  - `limit` (int, max: 100, default: 50)
+  - `offset` (int, min: 0, default: 0)
+- **Response**: Array of comments with author info, like counts
+- **Note**: Either `discussion_id` or `camera_id` must be provided
+
+#### Create Comment
+- **POST** `/api/v1/comments/`
+- **Auth Required**: Yes
+- **Request Body**:
+```json
+{
+  "body": "string",
+  "discussion_id": "string (optional)",
+  "camera_id": "string (optional)", 
+  "parent_id": "string (optional)"
+}
+```
+- **Response**: Created comment with author info
+- **Restriction**: Only users who mutually follow each other can comment on each other's posts
+
+#### Update Comment
+- **PUT** `/api/v1/comments/{comment_id}`
+- **Auth Required**: Yes (must be comment author)
+- **Request Body**:
+```json
+{
+  "body": "string"
+}
+```
+
+#### Delete Comment
+- **DELETE** `/api/v1/comments/{comment_id}`
+- **Auth Required**: Yes (must be comment author)
+
+---
+
+## Likes
+
+### Endpoints
+
+#### Create Like
+- **POST** `/api/v1/likes/`
+- **Auth Required**: Yes
+- **Request Body**:
+```json
+{
+  "discussion_id": "string (optional)",
+  "camera_id": "string (optional)",
+  "comment_id": "string (optional)"
+}
+```
+- **Response**: Success message with like ID
+- **Restriction**: Only users who mutually follow each other can like each other's posts
+- **Note**: Exactly one of `discussion_id`, `camera_id`, or `comment_id` must be provided
+
+#### Remove Like
+- **DELETE** `/api/v1/likes/`
+- **Auth Required**: Yes
+- **Request Body**:
+```json
+{
+  "discussion_id": "string (optional)",
+  "camera_id": "string (optional)",
+  "comment_id": "string (optional)"
+}
+```
+- **Response**: Success message
+- **Note**: Exactly one of `discussion_id`, `camera_id`, or `comment_id` must be provided
+
+#### Check Like Status
+- **GET** `/api/v1/likes/check`
+- **Auth Required**: Yes
+- **Query Parameters**:
+  - `discussion_id` (string, optional)
+  - `camera_id` (string, optional)
+  - `comment_id` (string, optional)
+- **Response**: `{"is_liked": boolean}`
+- **Note**: Exactly one of the query parameters must be provided
+
+#### Get Like Count
+- **GET** `/api/v1/likes/count`
+- **Query Parameters**:
+  - `discussion_id` (string, optional)
+  - `camera_id` (string, optional)
+  - `comment_id` (string, optional)
+- **Response**: `{"like_count": number}`
+- **Note**: Exactly one of the query parameters must be provided
 
 ---
 

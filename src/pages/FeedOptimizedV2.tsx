@@ -17,7 +17,10 @@ import {
   Plus,
   Camera,
   X,
-  Upload
+  Upload,
+  Edit,
+  Trash2,
+  EyeOff
 } from 'lucide-react';
 
 import { queryKeys } from '@/lib/react-query';
@@ -25,6 +28,8 @@ import { discussionService } from '@/services/api/discussions.service';
 import { userService } from '@/services/api/users.service';
 import { FeedSkeleton, DiscussionCardSkeleton } from '@/components/ui/Skeletons';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
+import { SocialActions } from '@/components/ui/SocialActions';
+import EditDiscussionModal from '@/components/ui/EditDiscussionModal';
 import { usePrefetchUser, usePrefetchDiscussion } from '@/hooks/useOptimizedQueries';
 import { perf, throttle } from '@/utils/performance';
 import { formatRelativeTime } from '@/utils/date.utils';
@@ -44,6 +49,8 @@ interface FeedPost extends Discussion {
     likes: number;
   };
   category?: string;
+  content?: string;
+  images?: string[];
 }
 
 const FeedOptimizedV2: React.FC = () => {
@@ -59,6 +66,12 @@ const FeedOptimizedV2: React.FC = () => {
     imageFile: null as File | null,
     imagePreview: null as string | null
   });
+
+  // Edit/Delete/Hide functionality
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingDiscussion, setEditingDiscussion] = useState<FeedPost | null>(null);
+  const [hiddenPosts, setHiddenPosts] = useState<Set<string>>(new Set());
+  const [showMenuForPost, setShowMenuForPost] = useState<string | null>(null);
   
   // Prefetch hooks for instant navigation
   const prefetchUser = usePrefetchUser();
@@ -147,7 +160,7 @@ const FeedOptimizedV2: React.FC = () => {
       // Filter discussions to only those from followed users
       const discussions = allDiscussions.filter((d: any) => 
         followingIds.includes(d.user_id)
-      ).slice(0, POSTS_PER_PAGE);
+      ).slice(0, POSTS_PER_PAGE) as Discussion[];
       
       // Get unique user IDs and check cache first
       const userIds = [...new Set(discussions.map((d: any) => d.user_id).filter(Boolean))];
@@ -173,9 +186,7 @@ const FeedOptimizedV2: React.FC = () => {
             try {
               const userData = await userService.getUserById(userId, token || undefined);
               // Cache the user data
-              queryClient.setQueryData(['users', userId], userData, {
-                staleTime: 10 * 60 * 1000, // 10 minutes
-              });
+              queryClient.setQueryData(['users', userId], userData);
               return { userId, data: userData };
             } catch (error) {
               // Don't log errors for missing users, it's expected
@@ -219,17 +230,18 @@ const FeedOptimizedV2: React.FC = () => {
       perf.measure('feed-fetch');
       return transformedDiscussions;
     },
-    getNextPageParam: (lastPage, pages) => {
+    initialPageParam: 0,
+    getNextPageParam: (lastPage: any, pages: any[]) => {
       if (lastPage.length < POSTS_PER_PAGE) return undefined;
       return pages.length;
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
-    cacheTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
     enabled: !!user?.id && !!followingUsers, // Only run if user is logged in and we have following list
   });
 
-  // Flatten all pages of discussions
-  const allDiscussions = data?.pages.flat() || [];
+  // Flatten all pages of discussions and filter out hidden posts
+  const allDiscussions = (data?.pages.flat() || []).filter(discussion => !hiddenPosts.has(discussion.id));
 
   // Set up infinite scroll
   useEffect(() => {
@@ -279,6 +291,22 @@ const FeedOptimizedV2: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showMenuForPost) {
+        const target = event.target as HTMLElement;
+        // Don't close if clicking on the menu button or menu items
+        if (!target.closest('.discussion-menu-container')) {
+          setShowMenuForPost(null);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showMenuForPost]);
+
   // Format relative time
   const formatRelativeTime = (date: string) => {
     const now = new Date();
@@ -317,6 +345,50 @@ const FeedOptimizedV2: React.FC = () => {
         imagePreview: URL.createObjectURL(file)
       }));
     }
+  };
+
+  // Handle edit, delete, and hide actions
+  const handleEdit = (discussion: FeedPost) => {
+    setEditingDiscussion(discussion);
+    setEditModalOpen(true);
+    setShowMenuForPost(null);
+  };
+
+  const handleSaveEdit = async (discussionId: string, data: any) => {
+    if (!user?.id) return;
+
+    try {
+      const token = await getToken();
+      await discussionService.updateDiscussion(discussionId, user.id, data, token || undefined);
+      
+      // Invalidate queries to refresh feed
+      queryClient.invalidateQueries({ queryKey: ['feed'] });
+      
+    } catch (error) {
+      console.error('Failed to update discussion:', error);
+      throw error;
+    }
+  };
+
+  const handleDelete = async (discussionId: string) => {
+    if (!user?.id) return;
+
+    try {
+      const token = await getToken();
+      await discussionService.deleteDiscussion(discussionId, user.id, token || undefined);
+      
+      // Invalidate queries to refresh feed
+      queryClient.invalidateQueries({ queryKey: ['feed'] });
+      
+    } catch (error) {
+      console.error('Failed to delete discussion:', error);
+      throw error;
+    }
+  };
+
+  const handleHide = (discussionId: string) => {
+    setHiddenPosts(prev => new Set([...prev, discussionId]));
+    setShowMenuForPost(null);
   };
 
   // Handle create post submission
@@ -443,9 +515,61 @@ const FeedOptimizedV2: React.FC = () => {
               <p className="text-xs text-gray-500">{formatRelativeTime(discussion.created_at)}</p>
             </div>
           </Link>
-          <button className="text-gray-400 hover:text-gray-600">
-            <MoreVertical className="w-5 h-5" />
-          </button>
+          <div className="relative discussion-menu-container">
+            <button 
+              className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowMenuForPost(showMenuForPost === discussion.id ? null : discussion.id);
+              }}
+            >
+              <MoreVertical className="w-5 h-5" />
+            </button>
+            
+            {showMenuForPost === discussion.id && (
+              <div className="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-20 min-w-[120px]">
+                {user?.id === discussion.user_id ? (
+                  <>
+                    <button
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEdit(discussion);
+                      }}
+                    >
+                      <Edit className="w-4 h-4" />
+                      Edit
+                    </button>
+                    <button
+                      className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm('Are you sure you want to delete this post?')) {
+                          handleDelete(discussion.id);
+                        }
+                        setShowMenuForPost(null);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleHide(discussion.id);
+                    }}
+                  >
+                    <EyeOff className="w-4 h-4" />
+                    Hide
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -483,8 +607,8 @@ const FeedOptimizedV2: React.FC = () => {
       {/* Images (if any) */}
       {discussion.images && discussion.images.length > 0 && (
         <div className="px-4 pb-3">
-          <div className={`grid gap-2 ${discussion.images.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-            {discussion.images.slice(0, 4).map((image, idx) => (
+          <div className={`grid gap-2 ${discussion.images!.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            {discussion.images!.slice(0, 4).map((image: string, idx: number) => (
               <div key={idx} className="relative aspect-square">
                 <OptimizedImage
                   src={image}
@@ -492,10 +616,10 @@ const FeedOptimizedV2: React.FC = () => {
                   className="w-full h-full object-cover rounded-lg"
                   priority={idx === 0}
                 />
-                {discussion.images.length > 4 && idx === 3 && (
+                {discussion.images!.length > 4 && idx === 3 && (
                   <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
                     <span className="text-white text-2xl font-semibold">
-                      +{discussion.images.length - 4}
+                      +{discussion.images!.length - 4}
                     </span>
                   </div>
                 )}
@@ -505,27 +629,15 @@ const FeedOptimizedV2: React.FC = () => {
         </div>
       )}
 
-      {/* Actions */}
-      <div className="px-4 py-3 border-t border-gray-100">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-6">
-            <button className="flex items-center space-x-2 text-gray-500 hover:text-red-500 transition-colors">
-              <Heart className="w-5 h-5" />
-              <span className="text-sm">0</span>
-            </button>
-            <button className="flex items-center space-x-2 text-gray-500 hover:text-blue-500 transition-colors">
-              <MessageCircle className="w-5 h-5" />
-              <span className="text-sm">{discussion.comment_count || 0}</span>
-            </button>
-            <button className="flex items-center space-x-2 text-gray-500 hover:text-green-500 transition-colors">
-              <Share2 className="w-5 h-5" />
-            </button>
-          </div>
-          <button className="text-gray-500 hover:text-orange-500 transition-colors">
-            <Bookmark className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
+      {/* Social Actions */}
+      <SocialActions
+        discussionId={discussion.id}
+        initialLikeCount={discussion.like_count || 0}
+        initialIsLiked={discussion.is_liked || false}
+        initialCommentCount={discussion.comment_count || 0}
+        currentUserId={user?.id}
+        className="px-4"
+      />
     </article>
   );
 
@@ -731,7 +843,7 @@ const FeedOptimizedV2: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {allDiscussions.map(renderDiscussionCard)}
+            {allDiscussions.map((discussion: FeedPost) => renderDiscussionCard(discussion))}
             
             {/* Infinite scroll trigger */}
             {hasNextPage && (
@@ -759,6 +871,26 @@ const FeedOptimizedV2: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Edit Discussion Modal */}
+      {editModalOpen && editingDiscussion && (
+        <EditDiscussionModal
+          discussion={{
+            ...editingDiscussion,
+            author: {
+              username: editingDiscussion.author?.username || 'Unknown',
+              avatar: editingDiscussion.author?.avatar || '/default-avatar.jpg'
+            }
+          } as any}
+          isOpen={editModalOpen}
+          onClose={() => {
+            setEditModalOpen(false);
+            setEditingDiscussion(null);
+          }}
+          onSave={handleSaveEdit}
+          onDelete={handleDelete}
+        />
+      )}
     </div>
   );
 };

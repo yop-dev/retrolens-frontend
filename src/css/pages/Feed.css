@@ -240,6 +240,12 @@
   align-items: flex-start;
   gap: 1rem;
   margin-bottom: 1rem;
+  width: 100%;
+}
+
+.discussion-info {
+  flex: 1;
+  min-width: 0; /* Prevents flex item from overflowing */
 }
 
 .pin-icon {
@@ -261,9 +267,6 @@
   background: var(--vintage-cream);
 }
 
-.discussion-info {
-  flex: 1;
-}
 
 .author-line {
   display: flex;

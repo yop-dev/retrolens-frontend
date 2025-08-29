@@ -65,8 +65,13 @@
   border-radius: 25px;
   font-size: 1rem;
   background: var(--vintage-cream);
-  color: var(--vintage-brown-dark);
+  color: #2c1810; /* Dark brown for better visibility */
   transition: all 0.2s;
+}
+
+.search-input::placeholder {
+  color: #6b5b4f; /* Medium brown for placeholder */
+  opacity: 1;
 }
 
 .search-input:focus {

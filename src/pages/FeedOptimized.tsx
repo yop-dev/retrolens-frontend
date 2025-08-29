@@ -9,7 +9,11 @@ import {
   X,
   Send,
   Camera,
-  Image
+  Image,
+  MoreVertical,
+  Edit,
+  Trash2,
+  EyeOff
 } from 'lucide-react'
 import { useUser } from '@clerk/clerk-react'
 import { useApiWithAuth } from '@/hooks'
@@ -18,8 +22,9 @@ import { userService } from '@/services/api/users.service'
 import { cacheService } from '@/services/cache/cache.service'
 import ImageLightbox from '@/components/ui/ImageLightbox'
 import { DiscussionSkeleton } from '@/components/ui/DiscussionSkeleton'
+import EditDiscussionModal from '@/components/ui/EditDiscussionModal'
 import { formatRelativeTime } from '@/utils/date.utils'
-import type { PageComponent, DiscussionFeedItem } from '@/types'
+import type { PageComponent, DiscussionFeedItem, UpdateDiscussionData } from '@/types'
 import '@/css/pages/Feed.css'
 import '@/css/components/skeleton.css'
 import '@/css/components/feed-images.css'
@@ -99,10 +104,31 @@ const DiscussionCard = React.memo<{
   onLike: (id: string) => void
   onShare: (id: string) => void
   onImageClick: (images: string[], index: number) => void
-}>(({ discussion, onLike, onShare, onImageClick }) => {
+  onEdit?: (discussion: DiscussionFeedItem) => void
+  onDelete?: (discussionId: string) => void
+  onHide?: (discussionId: string) => void
+  currentUserId?: string
+}>(({ discussion, onLike, onShare, onImageClick, onEdit, onDelete, onHide, currentUserId }) => {
+  const [showMenu, setShowMenu] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const isOwner = currentUserId && discussion.user_id === currentUserId
+  
   return (
-    <div className="discussion-card">
-      <div className="discussion-header">
+    <div className="discussion-card" style={{ pointerEvents: 'auto' }}>
+      <div className="discussion-header" style={{ pointerEvents: 'auto' }}>
         <img 
           src={discussion.author?.avatar || '/api/placeholder/32/32'} 
           alt={`${discussion.author?.username || 'User'} avatar`}
@@ -115,6 +141,81 @@ const DiscussionCard = React.memo<{
             <span className="discussion-time">{discussion.timeAgo}</span>
           </div>
           <span className="discussion-category">{discussion.category}</span>
+        </div>
+        
+        {/* Menu for all posts */}
+        <div className="discussion-menu" ref={menuRef}>
+          <button 
+            className="discussion-menu-button"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              console.log('Button clicked!', { discussionId: discussion.id, showMenu })
+              setShowMenu(!showMenu)
+            }}
+            onMouseDown={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              console.log('Button mouse down!')
+            }}
+            aria-label="More options"
+            style={{
+              backgroundColor: '#ff0000',
+              border: '3px solid #000000',
+              zIndex: 9999,
+              position: 'absolute',
+              top: '0',
+              right: '0',
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%'
+            }}
+          >
+            <MoreVertical size={16} />
+          </button>
+          
+          {showMenu && (
+            <div className="discussion-menu-dropdown">
+              {isOwner ? (
+                <>
+                  <button 
+                    className="discussion-menu-item"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setShowMenu(false)
+                      onEdit?.(discussion)
+                    }}
+                  >
+                    <Edit size={14} />
+                    Edit
+                  </button>
+                  <button 
+                    className="discussion-menu-item danger"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setShowMenu(false)
+                      onDelete?.(discussion.id)
+                    }}
+                  >
+                    <Trash2 size={14} />
+                    Delete
+                  </button>
+                </>
+              ) : (
+                <button 
+                  className="discussion-menu-item"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowMenu(false)
+                    onHide?.(discussion.id)
+                  }}
+                >
+                  <Eye size={14} style={{ opacity: 0.6 }} />
+                  Hide
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -227,6 +328,13 @@ export const FeedOptimized: PageComponent = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxImages, setLightboxImages] = useState<string[]>([])
   const [lightboxIndex, setLightboxIndex] = useState(0)
+
+  // Edit modal state
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editingDiscussion, setEditingDiscussion] = useState<DiscussionFeedItem | null>(null)
+
+  // Hidden posts state (temporary, resets on page refresh)
+  const [hiddenPosts, setHiddenPosts] = useState<Set<string>>(new Set())
 
   const openLightbox = useCallback((images: string[], index: number) => {
     setLightboxImages(images)
@@ -492,6 +600,64 @@ export const FeedOptimized: PageComponent = () => {
     console.log('Share discussion:', discussionId)
   }, [])
 
+  const handleEdit = useCallback((discussion: DiscussionFeedItem) => {
+    setEditingDiscussion(discussion)
+    setEditModalOpen(true)
+  }, [])
+
+  const handleSaveEdit = useCallback(async (discussionId: string, data: UpdateDiscussionData) => {
+    if (!user?.id) return
+
+    try {
+      await makeAuthenticatedRequest(async (token) => 
+        discussionService.updateDiscussion(discussionId, user.id, data, token)
+      )
+
+      // Update the discussion in the local state
+      setDiscussions(prev => prev.map(d => 
+        d.id === discussionId 
+          ? { 
+              ...d, 
+              title: data.title || d.title,
+              content: data.body || d.content,
+              tags: data.tags || d.tags
+            }
+          : d
+      ))
+
+      // Invalidate cache
+      cacheService.clear(cacheService.getFeedKey(user.id))
+      
+    } catch (error) {
+      console.error('Failed to update discussion:', error)
+      throw error
+    }
+  }, [user?.id, makeAuthenticatedRequest])
+
+  const handleDelete = useCallback(async (discussionId: string) => {
+    if (!user?.id) return
+
+    try {
+      await makeAuthenticatedRequest(async (token) => 
+        discussionService.deleteDiscussion(discussionId, user.id, token)
+      )
+
+      // Remove the discussion from local state
+      setDiscussions(prev => prev.filter(d => d.id !== discussionId))
+
+      // Invalidate cache
+      cacheService.clear(cacheService.getFeedKey(user.id))
+      
+    } catch (error) {
+      console.error('Failed to delete discussion:', error)
+      throw error
+    }
+  }, [user?.id, makeAuthenticatedRequest])
+
+  const handleHide = useCallback((discussionId: string) => {
+    setHiddenPosts(prev => new Set([...prev, discussionId]))
+  }, [])
+
   const handleCreatePost = useCallback(async () => {
     if (!createForm.imageFile || !createForm.description.trim()) {
       alert('Please select an image and add a description')
@@ -633,9 +799,18 @@ export const FeedOptimized: PageComponent = () => {
 
   // Memoized filtered discussions
   const filteredDiscussions = useMemo(() => {
-    if (selectedCategory === 'all') return discussions
-    return discussions.filter(d => d.category?.toLowerCase() === selectedCategory.toLowerCase())
-  }, [discussions, selectedCategory])
+    let filtered = discussions
+    
+    // Filter by category
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(d => d.category?.toLowerCase() === selectedCategory.toLowerCase())
+    }
+    
+    // Filter out hidden posts
+    filtered = filtered.filter(d => !hiddenPosts.has(d.id))
+    
+    return filtered
+  }, [discussions, selectedCategory, hiddenPosts])
 
   return (
     <div className="feed-page">
@@ -735,6 +910,10 @@ export const FeedOptimized: PageComponent = () => {
                     onLike={handleLike}
                     onShare={handleShare}
                     onImageClick={openLightbox}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onHide={handleHide}
+                    currentUserId={user?.id}
                   />
                 ))}
                 
@@ -877,6 +1056,20 @@ export const FeedOptimized: PageComponent = () => {
           images={lightboxImages}
           initialIndex={lightboxIndex}
           onClose={closeLightbox}
+        />
+      )}
+
+      {/* Edit Discussion Modal */}
+      {editModalOpen && editingDiscussion && (
+        <EditDiscussionModal
+          discussion={editingDiscussion}
+          isOpen={editModalOpen}
+          onClose={() => {
+            setEditModalOpen(false)
+            setEditingDiscussion(null)
+          }}
+          onSave={handleSaveEdit}
+          onDelete={handleDelete}
         />
       )}
     </div>

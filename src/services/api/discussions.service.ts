@@ -116,14 +116,18 @@ export class DiscussionService {
    */
   async updateDiscussion(
     discussionId: string,
+    userId: string,
     discussionData: UpdateDiscussionData,
     token?: string
   ): Promise<Discussion> {
+    const params = new URLSearchParams();
+    params.append('user_id', userId);
+    
     return apiClient.authenticatedRequest(
-      API_ENDPOINTS.DISCUSSION_BY_ID(discussionId),
+      `${API_ENDPOINTS.DISCUSSION_BY_ID(discussionId)}?${params.toString()}`,
       token || null,
       {
-        method: 'PATCH',
+        method: 'PUT',
         body: JSON.stringify(discussionData),
       }
     );
@@ -132,9 +136,16 @@ export class DiscussionService {
   /**
    * Delete discussion
    */
-  async deleteDiscussion(discussionId: string, token?: string): Promise<void> {
+  async deleteDiscussion(
+    discussionId: string, 
+    userId: string,
+    token?: string
+  ): Promise<void> {
+    const params = new URLSearchParams();
+    params.append('user_id', userId);
+    
     return apiClient.authenticatedRequest(
-      API_ENDPOINTS.DISCUSSION_BY_ID(discussionId),
+      `${API_ENDPOINTS.DISCUSSION_BY_ID(discussionId)}?${params.toString()}`,
       token || null,
       {
         method: 'DELETE',
