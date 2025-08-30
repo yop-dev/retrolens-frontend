@@ -12,6 +12,7 @@ import { useApiWithAuth } from '@/hooks';
 import { API_ENDPOINTS } from '@/constants';
 import { cacheService } from '@/services/cache/cache.service';
 import type { Camera, Discussion, UserProfile } from '@/types';
+import { ProfileLoadingScreen } from '@/components/ui/LoadingScreen';
 import '@/css/pages/Profile.css';
 import '@/css/components/skeleton.css';
 
@@ -23,8 +24,8 @@ const CACHE_TTL = 3 * 60 * 1000; // 3 minutes cache for profile data
  */
 type TabType = 'collection' | 'posts' | 'about';
 
-// Profile Skeleton Component
-const ProfileSkeleton = () => (
+// Profile Skeleton Component (unused but kept for potential future use)
+const _ProfileSkeleton = () => (
   <div className="profile-skeleton">
     <div className="profile-info-section">
       <div className="profile-left">
@@ -446,21 +447,7 @@ export function ProfileOptimized() {
 
   // Show loading state if Clerk is still loading or data is being fetched
   if (!userLoaded || loading) {
-    return (
-      <div className="profile-page">
-        <div className="mobile-profile-header">
-          <button onClick={() => navigate(-1)} className="back-btn">
-            <ArrowLeft size={20} />
-            <span>Back</span>
-          </button>
-          <h1>Profile</h1>
-          <div style={{ width: '32px' }}></div>
-        </div>
-        <div className="profile-container">
-          <ProfileSkeleton />
-        </div>
-      </div>
-    );
+    return <ProfileLoadingScreen />;
   }
 
   return (

@@ -109,7 +109,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         reader.readAsDataURL(file);
       });
     }
-  }, [files.length, maxFiles, maxFileSize, acceptedFormats]);
+  }, [validateFiles]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();

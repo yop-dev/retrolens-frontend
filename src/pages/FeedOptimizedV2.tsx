@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  Camera,
   Clock,
   Edit,
   EyeOff,
@@ -19,7 +18,8 @@ import {
 import { queryKeys } from '@/lib/react-query';
 import { discussionService } from '@/services/api/discussions.service';
 import { userService } from '@/services/api/users.service';
-import { DiscussionCardSkeleton, FeedSkeleton } from '@/components/ui/Skeletons';
+import { DiscussionCardSkeleton } from '@/components/ui/Skeletons';
+import { FeedLoadingScreen } from '@/components/ui/LoadingScreen';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { SocialActions } from '@/components/ui/SocialActions';
 import EditDiscussionModal from '@/components/ui/EditDiscussionModal';
@@ -205,7 +205,7 @@ const FeedOptimizedV2: React.FC = () => {
         return {
           ...discussion,
           author: {
-            username: userData?.username || userData?.full_name || discussion.username || 'Anonymous',
+            username: userData?.display_name || userData?.username || discussion.username || 'Anonymous',
             avatar: userData?.avatar_url || userData?.image_url || '/default-avatar.jpg'
           },
           images: (discussion.images && discussion.images.length > 0) ? discussion.images : extractedImages,
@@ -629,41 +629,48 @@ const FeedOptimizedV2: React.FC = () => {
         initialCommentCount={discussion.comment_count || 0}
         currentUserId={user?.id}
         className="px-4"
+        postData={{
+          title: discussion.title,
+          content: discussion.content,
+          images: discussion.images,
+          author: discussion.author,
+          timeAgo: formatRelativeTime(discussion.created_at)
+        }}
       />
     </article>
   );
+
+  // Show loading screen first, before any other content
+  if (isLoading || isLoadingFollowing) {
+    return <FeedLoadingScreen />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Create Post Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-gray-100">
+            <div className="p-8">
               {/* Modal Header */}
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">Create New Post</h2>
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-light text-gray-900">Create Post</h2>
                 <button
                   onClick={() => setShowCreateModal(false)}
-                  className="p-1 rounded-md hover:bg-gray-100 transition-colors"
+                  className="p-2 rounded-full hover:bg-gray-50 transition-all duration-200 group"
                 >
-                  <X className="w-5 h-5 text-gray-500" />
+                  <X className="w-5 h-5 text-gray-400 group-hover:text-gray-600" />
                 </button>
               </div>
 
               {/* Image Upload Area */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Camera Photo
-                </label>
+              <div className="mb-8">
                 {!createForm.imagePreview ? (
-                  <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <Camera className="w-10 h-10 mb-3 text-gray-400" />
-                      <p className="mb-2 text-sm text-gray-500">
-                        <span className="font-semibold">Click to upload</span> or drag and drop
-                      </p>
-                      <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                  <label className="flex items-center justify-center w-full h-64 border border-gray-200 rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all duration-200 group">
+                    <div className="flex flex-col items-center">
+                      <div className="p-4 rounded-full bg-white shadow-sm group-hover:shadow-md transition-all duration-200">
+                        <Upload className="w-8 h-8 text-gray-400 group-hover:text-orange-500" />
+                      </div>
                     </div>
                     <input
                       type="file"
@@ -677,7 +684,7 @@ const FeedOptimizedV2: React.FC = () => {
                     <img
                       src={createForm.imagePreview}
                       alt="Preview"
-                      className="w-full h-48 object-cover rounded-lg"
+                      className="w-full h-64 object-cover rounded-xl"
                     />
                     <button
                       onClick={() => {
@@ -690,7 +697,7 @@ const FeedOptimizedV2: React.FC = () => {
                           imagePreview: null
                         }));
                       }}
-                      className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors"
+                      className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-white transition-all duration-200"
                     >
                       <X className="w-4 h-4 text-gray-600" />
                     </button>
@@ -699,48 +706,38 @@ const FeedOptimizedV2: React.FC = () => {
               </div>
 
               {/* Description Input */}
-              <div className="mb-6">
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                  Description
-                </label>
+              <div className="mb-8">
                 <textarea
-                  id="description"
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
-                  placeholder="Tell us about your camera..."
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 resize-none transition-all duration-200 placeholder-gray-400"
+                  placeholder="Share your thoughts..."
                   value={createForm.description}
                   onChange={(e) => setCreateForm(prev => ({ ...prev, description: e.target.value }))}
                   maxLength={500}
                 />
-                <p className="mt-1 text-xs text-gray-500">
-                  {createForm.description.length}/500 characters
-                </p>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex space-x-3">
+              <div className="flex gap-3">
                 <button
                   onClick={() => setShowCreateModal(false)}
-                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="flex-1 px-6 py-3 text-gray-600 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all duration-200 font-medium"
                   disabled={isCreatingPost}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleCreatePost}
-                  className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-xl hover:from-orange-700 hover:to-orange-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center font-medium shadow-lg hover:shadow-xl"
                   disabled={isCreatingPost || !createForm.imageFile || !createForm.description.trim()}
                 >
                   {isCreatingPost ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                      Creating...
+                      Publishing...
                     </>
                   ) : (
-                    <>
-                      <Upload className="w-4 h-4 mr-2" />
-                      Post
-                    </>
+                    'Publish'
                   )}
                 </button>
               </div>
@@ -750,26 +747,18 @@ const FeedOptimizedV2: React.FC = () => {
       )}
 
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-4 py-3">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm feed-header">
+        <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            {/* New Post Button */}
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors shadow-sm"
-            >
-              <Plus className="w-4 h-4 mr-1" />
-              New Post
-            </button>
-            
-            {/* Sort Options */}
-            <div className="flex items-center space-x-2">
+            {/* Sort Options - Now on the left */}
+            <div className="flex items-center space-x-2 feed-sort-options">
+              <span className="text-sm font-medium text-gray-700 mr-2">Sort by:</span>
               <button
                 onClick={() => handleSortChange('created_at')}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 feed-sort-button ${
                   sortBy === 'created_at'
-                    ? 'bg-orange-100 text-orange-700'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-orange-100 text-orange-700 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               >
                 <Clock className="w-4 h-4 inline mr-1" />
@@ -777,25 +766,33 @@ const FeedOptimizedV2: React.FC = () => {
               </button>
               <button
                 onClick={() => handleSortChange('view_count')}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 feed-sort-button ${
                   sortBy === 'view_count'
-                    ? 'bg-orange-100 text-orange-700'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-orange-100 text-orange-700 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               >
                 <TrendingUp className="w-4 h-4 inline mr-1" />
                 Popular
               </button>
             </div>
+            
+            {/* New Post Button - Now on the right with better styling */}
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center px-6 py-2.5 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-lg hover:from-orange-700 hover:to-orange-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 font-medium feed-create-button"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              <span className="hidden sm:inline">Create Post</span>
+              <span className="sm:hidden">Post</span>
+            </button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="max-w-2xl mx-auto px-4 py-6">
-        {(isLoading || isLoadingFollowing) ? (
-          <FeedSkeleton />
-        ) : isError ? (
+        {isError ? (
           <div className="text-center py-12">
             <p className="text-red-600">Error loading feed: {error?.message}</p>
             <button

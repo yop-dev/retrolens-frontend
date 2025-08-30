@@ -977,3 +977,131 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Feed Header Responsive Styles */
+@media (max-width: 768px) {
+  .feed-header {
+    padding: 0.75rem 1rem;
+  }
+  
+  .feed-header > div {
+    padding: 0.5rem 0 !important;
+  }
+  
+  .feed-header .flex {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+  }
+  
+  .feed-sort-options {
+    justify-content: flex-start !important;
+    flex-wrap: nowrap !important;
+    gap: 0.25rem !important;
+    flex-shrink: 1;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .feed-sort-options::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .feed-sort-options span {
+    display: none !important; /* Hide "Sort by:" label on mobile */
+  }
+  
+  .feed-sort-button {
+    padding: 0.375rem 0.75rem !important;
+    font-size: 0.75rem !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+  
+  .feed-sort-button svg {
+    width: 0.875rem !important;
+    height: 0.875rem !important;
+    margin-right: 0.25rem !important;
+  }
+  
+  .feed-create-button {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.875rem !important;
+    flex-shrink: 0 !important;
+    min-width: auto !important;
+    width: auto !important;
+  }
+  
+  .feed-create-button svg {
+    width: 1rem !important;
+    height: 1rem !important;
+    margin-right: 0.375rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .feed-header {
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .feed-header > div {
+    padding: 0.25rem 0 !important;
+  }
+  
+  .feed-sort-options {
+    gap: 0.125rem !important;
+  }
+  
+  .feed-sort-button {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.6875rem !important;
+  }
+  
+  .feed-sort-button svg {
+    width: 0.75rem !important;
+    height: 0.75rem !important;
+    margin-right: 0.125rem !important;
+  }
+  
+  .feed-create-button {
+    padding: 0.375rem 0.75rem !important;
+    font-size: 0.75rem !important;
+  }
+  
+  .feed-create-button svg {
+    width: 0.875rem !important;
+    height: 0.875rem !important;
+    margin-right: 0.25rem !important;
+  }
+}
+
+/* Additional mobile optimizations */
+@media (max-width: 640px) {
+  .feed-header {
+    position: sticky;
+    top: 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+  }
+  
+  .feed-create-button {
+    border-radius: 0.5rem !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  .feed-create-button:hover {
+    transform: none !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15) !important;
+  }
+  
+  .feed-sort-button {
+    border-radius: 0.375rem !important;
+  }
+  
+  .feed-sort-options {
+    padding-right: 0.5rem;
+  }
+}

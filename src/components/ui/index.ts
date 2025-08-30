@@ -14,6 +14,9 @@ export { CommentItem } from './CommentItem';
 export { CommentSection } from './CommentSection';
 export { SocialActions } from './SocialActions';
 
+// Loading components
+export * from './LoadingScreen';
+
 // export { Button } from './Button';
 // export { Input } from './Input';
 // export { Card } from './Card';

@@ -200,46 +200,25 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
                 onChange={(e) => setNewComment(e.target.value)}
                 onKeyDown={(e) => handleKeyPress(e, false)}
                 placeholder="Share your thoughts..."
-                className="w-full p-4 pr-12 border border-gray-200 rounded-xl resize-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 placeholder:text-gray-500 bg-gray-50/50 focus:bg-white text-gray-900"
+                className="w-full p-4 pr-16 border border-gray-200 rounded-xl resize-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 placeholder:text-gray-500 bg-gray-50/50 focus:bg-white text-gray-900"
                 rows={3}
                 disabled={isSubmitting}
               />
               <div className="absolute bottom-3 right-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400 hidden sm:block">
-                    ⌘+Enter
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-              <p className="text-sm text-gray-500 flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span className="hidden sm:inline">Press Ctrl+Enter to submit quickly</span>
-                <span className="sm:hidden">Tap to post your comment</span>
-              </p>
-              <button
-                onClick={handleSubmitComment}
-                disabled={isSubmitting || !newComment.trim()}
-                className="comment-button px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-sm hover:shadow-md flex items-center gap-2 justify-center"
-              >
-                {isSubmitting ? (
-                  <>
+                <button
+                  onClick={handleSubmitComment}
+                  disabled={isSubmitting || !newComment.trim()}
+                  className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center"
+                >
+                  {isSubmitting ? (
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    Posting...
-                  </>
-                ) : (
-                  <>
+                  ) : (
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                     </svg>
-                    Post Comment
-                  </>
-                )}
-              </button>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

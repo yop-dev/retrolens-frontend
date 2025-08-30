@@ -4,6 +4,7 @@
 @import './CustomSignIn.css';
 @import './Header.css';
 @import './comments.css';
+@import './loading-screen.css';
 
 /* Edit Discussion Modal Styles */
 .edit-note {

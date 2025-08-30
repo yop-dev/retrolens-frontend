@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useUser } from '@clerk/clerk-react'
 import { ArrowLeft, Search as SearchIcon, User, UserCheck, UserPlus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
@@ -18,7 +18,7 @@ export function Search() {
   const [followingUsers, setFollowingUsers] = useState<Set<string>>(new Set())
 
   // Search users
-  const handleSearch = async (query: string) => {
+  const handleSearch = useCallback(async (query: string) => {
     if (!query.trim()) {
       setSearchResults([])
       return
@@ -75,7 +75,7 @@ export function Search() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user?.id, user?.imageUrl, makeAuthenticatedRequest])
 
   // Handle follow/unfollow
   const handleFollowToggle = async (targetUserId: string) => {
@@ -111,7 +111,7 @@ export function Search() {
     }, 300)
 
     return () => clearTimeout(timer)
-  }, [searchQuery])
+  }, [searchQuery, handleSearch])
 
   return (
     <div className="search-page">

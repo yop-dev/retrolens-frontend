@@ -1,0 +1,213 @@
+/* Loading Screen Styles */
+.loading-screen {
+  @apply fixed inset-0 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50;
+  @apply flex items-center justify-center min-h-screen;
+  z-index: 9999; /* Ensure it's above all other elements including headers */
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  position: fixed !important;
+}
+
+.loading-screen__container {
+  @apply flex flex-col items-center justify-center space-y-8 p-8;
+  @apply max-w-md mx-auto text-center;
+}
+
+.loading-screen__logo {
+  @apply mb-4;
+}
+
+.loading-screen__brand {
+  @apply flex items-center justify-center space-x-3;
+}
+
+.loading-screen__brand-text {
+  @apply text-2xl font-bold text-gray-900;
+  @apply bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent;
+}
+
+.loading-screen__content {
+  @apply flex flex-col items-center space-y-6;
+}
+
+.loading-screen__icon {
+  @apply flex items-center justify-center;
+  @apply w-20 h-20 bg-white/80 backdrop-blur-sm rounded-full shadow-lg;
+  @apply border border-amber-200;
+}
+
+.loading-screen__text {
+  @apply space-y-4;
+}
+
+.loading-screen__message {
+  @apply text-lg font-medium text-gray-700;
+  @apply max-w-xs mx-auto leading-relaxed;
+}
+
+.loading-screen__dots {
+  @apply flex items-center justify-center space-x-1;
+}
+
+.loading-screen__dot {
+  @apply w-2 h-2 bg-amber-600 rounded-full;
+  animation: loading-dots 1.4s ease-in-out infinite both;
+}
+
+.loading-screen__dot--1 {
+  animation-delay: -0.32s;
+}
+
+.loading-screen__dot--2 {
+  animation-delay: -0.16s;
+}
+
+.loading-screen__dot--3 {
+  animation-delay: 0s;
+}
+
+@keyframes loading-dots {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.loading-screen__progress {
+  @apply w-full max-w-xs;
+}
+
+.loading-screen__progress-bar {
+  @apply w-full h-1 bg-amber-100 rounded-full overflow-hidden;
+}
+
+.loading-screen__progress-fill {
+  @apply h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full;
+  @apply transform -translate-x-full;
+  animation: loading-progress 2s ease-in-out infinite;
+}
+
+@keyframes loading-progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Compact Loading Styles */
+.compact-loading {
+  @apply flex items-center justify-center py-8;
+  position: relative;
+  z-index: 10;
+}
+
+.compact-loading__content {
+  @apply flex items-center space-x-3;
+  @apply bg-white/80 backdrop-blur-sm rounded-lg px-6 py-4;
+  @apply border border-amber-200 shadow-sm;
+}
+
+.compact-loading__message {
+  @apply text-sm font-medium text-gray-600;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .loading-screen {
+    /* Ensure loading screen covers mobile header */
+    z-index: 10000 !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important; /* Dynamic viewport height for mobile */
+  }
+  
+  .loading-screen__container {
+    @apply px-6 space-y-6;
+    /* Ensure container is properly positioned */
+    position: relative;
+    z-index: 1;
+  }
+  
+  .loading-screen__brand-text {
+    @apply text-xl;
+  }
+  
+  .loading-screen__message {
+    @apply text-base;
+  }
+  
+  .loading-screen__icon {
+    @apply w-16 h-16;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .loading-screen {
+    @apply from-gray-900 via-gray-800 to-gray-900;
+  }
+  
+  .loading-screen__brand-text {
+    @apply text-white;
+  }
+  
+  .loading-screen__message {
+    @apply text-gray-300;
+  }
+  
+  .loading-screen__icon {
+    @apply bg-gray-800/80 border-gray-700;
+  }
+  
+  .compact-loading__content {
+    @apply bg-gray-800/80 border-gray-700;
+  }
+  
+  .compact-loading__message {
+    @apply text-gray-300;
+  }
+}
+
+/* Hide headers and navigation when loading screen is active */
+.loading-screen ~ * .header,
+.loading-screen ~ * .mobile-profile-header,
+.loading-screen ~ * .feed-header,
+.loading-screen ~ * .discover-header,
+.loading-screen ~ * .collection-header,
+.loading-screen ~ * nav,
+.loading-screen ~ * .navigation {
+  display: none !important;
+}
+
+/* Ensure loading screen is always on top */
+.loading-screen {
+  isolation: isolate;
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .loading-screen__dot,
+  .loading-screen__progress-fill {
+    animation: none;
+  }
+  
+  .loading-screen__icon * {
+    animation: none;
+  }
+}

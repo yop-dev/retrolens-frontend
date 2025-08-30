@@ -1,5 +1,5 @@
 import { SignedIn, SignedOut, useClerk, useUser } from '@clerk/clerk-react'
-import { Bell, Camera, ChevronDown, Compass, FolderOpen, Home, LogOut, Search, User } from 'lucide-react'
+import { Bell, ChevronDown, Compass, FolderOpen, Home, LogOut, Search, User } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { CustomSignIn } from '../components/CustomSignIn'
 import { useEffect, useRef, useState } from 'react'
@@ -55,7 +55,11 @@ export function Header() {
       <header className="desktop-header">
         <div className="header-left">
           <Link to="/feed" className="logo">
-            <Camera className="logo-icon" />
+            <img 
+              src="/src/assets/favicon/favicon-32x32.png" 
+              alt="Camera Community Logo" 
+              className="logo-icon"
+            />
             <div>
               <h1>RetroLens</h1>
               <span className="tagline">Vintage Camera Community</span>
@@ -156,7 +160,11 @@ export function Header() {
       <header className="mobile-header">
         <div className="mobile-header-top">
           <Link to="/feed" className="mobile-logo">
-            <Camera size={24} />
+            <img 
+              src="/src/assets/favicon/favicon-32x32.png" 
+              alt="Camera Community Logo" 
+              className="mobile-logo-icon"
+            />
             <span>RetroLens</span>
           </Link>
           <div className="mobile-actions">
