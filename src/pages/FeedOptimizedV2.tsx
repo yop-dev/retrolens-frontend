@@ -1,22 +1,15 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  Bookmark,
-  Calendar,
   Camera,
-  ChevronLeft,
   Clock,
   Edit,
-  Eye,
   EyeOff,
   Hash,
-  Heart,
-  MessageCircle,
   MoreVertical,
   Plus,
-  Share2,
   Trash2,
   TrendingUp,
   Upload,
@@ -32,7 +25,6 @@ import { SocialActions } from '@/components/ui/SocialActions';
 import EditDiscussionModal from '@/components/ui/EditDiscussionModal';
 import { usePrefetchDiscussion, usePrefetchUser } from '@/hooks/useOptimizedQueries';
 import { perf, throttle } from '@/utils/performance';
-import { formatRelativeTime } from '@/utils/date.utils';
 import type { Discussion, UserProfile } from '@/types';
 
 const POSTS_PER_PAGE = 10;
@@ -107,7 +99,7 @@ const FeedOptimizedV2: React.FC = () => {
       const token = await getToken();
       try {
         const following = await userService.getUserFollowing(user.id, token || undefined);
-        console.log('Following users:', following.length);
+        // Following users loaded: following.length
         return following;
       } catch (error) {
         console.error('Error fetching following list:', error);
@@ -188,7 +180,7 @@ const FeedOptimizedV2: React.FC = () => {
               // Cache the user data
               queryClient.setQueryData(['users', userId], userData);
               return { userId, data: userData };
-            } catch (error) {
+            } catch (_error) {
               // Don't log errors for missing users, it's expected
               return { userId, data: null };
             }

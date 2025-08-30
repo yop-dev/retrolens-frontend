@@ -190,7 +190,7 @@ export const Discover: PageComponent = () => {
   }, []);
 
   const handleViewDetails = useCallback((photoId: string) => {
-    console.log('View details for photo:', photoId);
+    console.warn('View details for photo:', photoId);
     // Navigate to photo details page
   }, []);
 

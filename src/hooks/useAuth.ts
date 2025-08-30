@@ -33,12 +33,12 @@ export const useAuth = () => {
         throw new Error('No authentication token available');
       }
 
-      console.log('Syncing user data with backend...');
+      console.warn('Syncing user data with backend...');
       const profile = await clerkAuthService.syncUserToBackend(clerkUser, token);
       
       if (profile) {
         setUserProfile(profile);
-        console.log('User profile synchronized successfully');
+        console.warn('User profile synchronized successfully');
       } else {
         console.warn('User sync returned no profile');
       }

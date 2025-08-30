@@ -145,7 +145,7 @@ export function AddCamera() {
         return response.json();
       });
 
-      console.log('Camera created:', createdCamera);
+      console.warn('Camera created:', createdCamera);
 
       // Step 2: Upload images if any
       if (selectedImages.length > 0) {
@@ -176,7 +176,7 @@ export function AddCamera() {
               return response.json();
             });
 
-            console.log(`Image ${i + 1} uploaded:`, uploadResponse);
+            console.warn(`Image ${i + 1} uploaded:`, uploadResponse);
             
             // TODO: Associate uploaded image with the camera
             // This would require an additional endpoint to link images to cameras

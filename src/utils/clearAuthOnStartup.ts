@@ -8,7 +8,7 @@ export function clearAuthOnStartup() {
     const shouldClearAuth = !sessionStorage.getItem('dev-session-active');
     
     if (shouldClearAuth) {
-      console.log('🔄 Clearing authentication for fresh dev session...');
+      console.warn('🔄 Clearing authentication for fresh dev session...');
       
       // Clear Clerk cookies and localStorage
       // Clerk stores data with keys starting with "__clerk"
@@ -55,7 +55,7 @@ export function clearAuthOnStartup() {
       // Mark that we've started a dev session (this will be cleared on page refresh)
       sessionStorage.setItem('dev-session-active', 'true');
       
-      console.log('✅ Authentication cleared. Please log in.');
+      console.warn('✅ Authentication cleared. Please log in.');
     }
   }
 }

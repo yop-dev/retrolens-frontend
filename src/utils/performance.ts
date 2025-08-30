@@ -27,7 +27,7 @@ export class PerformanceMonitor {
     const duration = performance.now() - startTime;
     
     if (logResult && process.env.NODE_ENV === 'development') {
-      console.log(`⚡ ${name}: ${duration.toFixed(2)}ms`);
+      console.warn(`⚡ ${name}: ${duration.toFixed(2)}ms`);
     }
     
     this.marks.delete(name);
@@ -41,7 +41,7 @@ export class PerformanceMonitor {
       const paintObserver = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
           if (entry.name === 'first-contentful-paint') {
-            console.log(`⚡ FCP: ${entry.startTime.toFixed(2)}ms`);
+            console.warn(`⚡ FCP: ${entry.startTime.toFixed(2)}ms`);
           }
         }
       });
@@ -51,7 +51,7 @@ export class PerformanceMonitor {
       const lcpObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries();
         const lastEntry = entries[entries.length - 1];
-        console.log(`⚡ LCP: ${lastEntry.startTime.toFixed(2)}ms`);
+        console.warn(`⚡ LCP: ${lastEntry.startTime.toFixed(2)}ms`);
       });
       lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
     }
@@ -59,7 +59,7 @@ export class PerformanceMonitor {
 }
 
 // Debounce function for performance
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -77,13 +77,13 @@ export function debounce<T extends (...args: any[]) => any>(
 }
 
 // Throttle function for scroll events
-export function throttle<T extends (...args: any[]) => any>(
+export function throttle<T extends (...args: unknown[]) => unknown>(
   func: T,
   limit: number
 ): (...args: Parameters<T>) => void {
   let inThrottle: boolean;
   
-  return function(this: any, ...args: Parameters<T>) {
+  return function(this: unknown, ...args: Parameters<T>) {
     if (!inThrottle) {
       func.apply(this, args);
       inThrottle = true;

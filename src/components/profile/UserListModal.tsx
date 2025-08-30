@@ -27,40 +27,41 @@ export const UserListModal: React.FC<UserListModalProps> = ({
   const [loadingFollow, setLoadingFollow] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true);
+      try {
+        const token = await getToken();
+        let userList: UserProfile[] = [];
+        
+        if (type === 'followers') {
+          userList = await userService.getUserFollowers(userId, token || undefined);
+        } else {
+          userList = await userService.getUserFollowing(userId, token || undefined);
+        }
+        
+        setUsers(userList);
+        
+        // Check following status for each user if current user is logged in
+        if (currentUserId && token) {
+          const status: { [key: string]: boolean } = {};
+          const followingList = await userService.getUserFollowing(currentUserId, token);
+          followingList.forEach(user => {
+            status[user.id] = true;
+          });
+          setFollowingStatus(status);
+        }
+      } catch (error) {
+        console.error(`Failed to fetch ${type}:`, error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (isOpen) {
       fetchUsers();
     }
-  }, [isOpen, userId, type]);
+  }, [isOpen, userId, type, currentUserId, getToken]);
 
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const token = await getToken();
-      let userList: UserProfile[] = [];
-      
-      if (type === 'followers') {
-        userList = await userService.getUserFollowers(userId, token || undefined);
-      } else {
-        userList = await userService.getUserFollowing(userId, token || undefined);
-      }
-      
-      setUsers(userList);
-      
-      // Check following status for each user if current user is logged in
-      if (currentUserId && token) {
-        const status: { [key: string]: boolean } = {};
-        const followingList = await userService.getUserFollowing(currentUserId, token);
-        followingList.forEach(user => {
-          status[user.id] = true;
-        });
-        setFollowingStatus(status);
-      }
-    } catch (error) {
-      console.error(`Failed to fetch ${type}:`, error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleFollow = async (targetUserId: string) => {
     if (!currentUserId) {return;}

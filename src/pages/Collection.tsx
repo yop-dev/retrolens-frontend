@@ -137,7 +137,7 @@ export const Collection: PageComponent = () => {
 
   // Handlers
   const handleUpload = useCallback(async (files: File[]) => {
-    console.log('Uploading files:', files);
+    console.warn('Uploading files:', files);
     // Simulate upload process
     await new Promise(resolve => setTimeout(resolve, 2000));
     
@@ -196,12 +196,12 @@ export const Collection: PageComponent = () => {
   }, [selectedPhotos]);
 
   const handleEdit = useCallback((photoId: string) => {
-    console.log('Edit photo:', photoId);
+    console.warn('Edit photo:', photoId);
     // Navigate to edit page or open edit modal
   }, []);
 
   const handleShare = useCallback((photoId: string) => {
-    console.log('Share photo:', photoId);
+    console.warn('Share photo:', photoId);
     // Open share modal
   }, []);
 
@@ -217,7 +217,7 @@ export const Collection: PageComponent = () => {
   }, [photos]);
 
   const handleView = useCallback((photoId: string) => {
-    console.log('View photo:', photoId);
+    console.warn('View photo:', photoId);
     // Open photo viewer modal
   }, []);
 
@@ -305,7 +305,7 @@ export const Collection: PageComponent = () => {
                       className="collection-bulk-action"
                       onClick={() => {
                         // Bulk share
-                        console.log('Share selected:', Array.from(selectedPhotos));
+                        console.warn('Share selected:', Array.from(selectedPhotos));
                       }}
                       aria-label="Share selected"
                     >

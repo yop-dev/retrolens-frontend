@@ -36,17 +36,18 @@ export function CustomSignIn({ onClose }: { onClose: () => void }) {
         navigate('/feed')
         onClose()
       } else {
-        console.log('Sign in requires additional steps:', result.status)
+        console.warn('Sign in requires additional steps:', result.status)
         setError('Sign in requires additional verification')
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Sign in error:', err)
       
-      if (err.errors?.[0]?.code === 'form_password_incorrect' || 
-          err.errors?.[0]?.code === 'form_identifier_not_found') {
+      const error = err as { errors?: Array<{ code?: string; message?: string }> }
+      if (error.errors?.[0]?.code === 'form_password_incorrect' || 
+          error.errors?.[0]?.code === 'form_identifier_not_found') {
         setError('Invalid email or password.')
-      } else if (err.errors?.[0]?.message) {
-        setError(err.errors[0].message)
+      } else if (error.errors?.[0]?.message) {
+        setError(error.errors[0].message)
       } else {
         setError('Failed to sign in. Please try again.')
       }
@@ -75,12 +76,12 @@ export function CustomSignIn({ onClose }: { onClose: () => void }) {
     // Add timeout for long requests
     const timeoutId = setTimeout(() => {
       if (isLoading) {
-        console.log('Sign up is taking longer than expected...')
+        console.warn('Sign up is taking longer than expected...')
       }
     }, 5000)
 
     try {
-      console.log('Starting sign up process for:', email)
+      console.warn('Starting sign up process for:', email)
       const startTime = Date.now()
       
       const result = await signUp.create({
@@ -89,11 +90,11 @@ export function CustomSignIn({ onClose }: { onClose: () => void }) {
       })
 
       const elapsed = Date.now() - startTime
-      console.log(`Sign up API call took ${elapsed}ms`)
-      console.log('Sign up result:', result)
+      console.warn(`Sign up API call took ${elapsed}ms`)
+      console.warn('Sign up result:', result)
 
       if (result.status === 'complete') {
-        console.log('Sign up complete, setting active session...')
+        console.warn('Sign up complete, setting active session...')
         if (setActive) {
           await setActive({ session: result.createdSessionId })
         }
@@ -101,20 +102,21 @@ export function CustomSignIn({ onClose }: { onClose: () => void }) {
         onClose()
       } else if (result.status === 'missing_requirements') {
         // Email verification required
-        console.log('Email verification required, preparing...')
+        console.warn('Email verification required, preparing...')
         await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
         setVerificationPending(true)
       } else {
-        console.log('Sign up requires additional steps:', result.status)
+        console.warn('Sign up requires additional steps:', result.status)
         setError('Sign up requires additional verification')
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Sign up error:', err)
       
-      if (err.errors?.[0]?.code === 'form_identifier_exists') {
+      const error = err as { errors?: Array<{ code?: string; message?: string }> }
+      if (error.errors?.[0]?.code === 'form_identifier_exists') {
         setError('An account with this email already exists. Please sign in instead.')
-      } else if (err.errors?.[0]?.message) {
-        setError(err.errors[0].message)
+      } else if (error.errors?.[0]?.message) {
+        setError(error.errors[0].message)
       } else {
         setError('Failed to sign up. Please try again.')
       }
@@ -160,13 +162,14 @@ export function CustomSignIn({ onClose }: { onClose: () => void }) {
       } else {
         setError('Verification failed. Please try again.')
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Verification error:', err)
       
-      if (err.errors?.[0]?.code === 'form_code_incorrect') {
+      const error = err as { errors?: Array<{ code?: string; message?: string }> }
+      if (error.errors?.[0]?.code === 'form_code_incorrect') {
         setError('Invalid verification code. Please check your email and try again.')
-      } else if (err.errors?.[0]?.message) {
-        setError(err.errors[0].message)
+      } else if (error.errors?.[0]?.message) {
+        setError(error.errors[0].message)
       } else {
         setError('Verification failed. Please try again.')
       }

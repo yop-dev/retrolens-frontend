@@ -51,7 +51,7 @@ export class ClerkAuthService {
         },
       };
 
-      console.log('Syncing user with backend:', { ...syncData, metadata: 'hidden' });
+      console.warn('Syncing user with backend:', { ...syncData, metadata: 'hidden' });
 
       // Get user service dynamically to avoid circular imports
       const userService = await this.getUserService();
@@ -59,7 +59,7 @@ export class ClerkAuthService {
       // Attempt to sync user
       const syncResult = await userService.syncUser(syncData, token);
       
-      console.log('User sync successful:', syncResult);
+      console.warn('User sync successful:', syncResult);
 
       // Try to fetch the updated user profile
       try {
@@ -147,7 +147,7 @@ export class ClerkAuthService {
       this.clearUserCache();
       
       // You could also notify the backend about the sign out
-      console.log('User signed out successfully');
+      console.warn('User signed out successfully');
     } catch (error) {
       console.error('Error during sign out cleanup:', error);
     }

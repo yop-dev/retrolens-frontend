@@ -43,7 +43,7 @@ export function Search() {
       console.error('Search failed:', error)
       
       // Fallback: Create a realistic user based on your other account for testing
-      console.log('Backend unavailable, showing test user for follow functionality')
+      console.warn('Backend unavailable, showing test user for follow functionality')
       
       // Create a test user that represents your other account
       const testUsers: UserProfile[] = [

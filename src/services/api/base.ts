@@ -22,7 +22,7 @@ export class ApiClient {
   constructor(baseURL?: string) {
     this.baseURL = baseURL || API_CONFIG.BASE_URL;
     this.defaultTimeout = API_CONFIG.TIMEOUT;
-    console.log('[API Debug] ApiClient initialized with baseURL:', this.baseURL);
+    console.warn('[API Debug] ApiClient initialized with baseURL:', this.baseURL);
   }
 
   /**
@@ -47,7 +47,7 @@ export class ApiClient {
 
       // Debug logging
       const fullUrl = `${this.baseURL}${normalizedEndpoint}`;
-      console.log('[API Debug] Making request:', {
+      console.warn('[API Debug] Making request:', {
         baseURL: this.baseURL,
         originalEndpoint: endpoint,
         normalizedEndpoint,

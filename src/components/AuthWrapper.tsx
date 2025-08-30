@@ -31,9 +31,9 @@ export const AuthWrapper: React.FC<BaseComponentProps> = ({ children }) => {
           return;
         }
 
-        console.log('AuthWrapper: Syncing user with backend...');
+        console.warn('AuthWrapper: Syncing user with backend...');
         await clerkAuthService.syncUserToBackend(user, token);
-        console.log('AuthWrapper: User sync completed successfully');
+        console.warn('AuthWrapper: User sync completed successfully');
 
       } catch (error) {
         const apiError = handleApiError(error);
@@ -45,7 +45,7 @@ export const AuthWrapper: React.FC<BaseComponentProps> = ({ children }) => {
     };
 
     syncUser();
-  }, [user?.id, userIsLoaded, authIsLoaded, getToken]);
+  }, [user, userIsLoaded, authIsLoaded, getToken]);
 
   return <>{children}</>;
 };

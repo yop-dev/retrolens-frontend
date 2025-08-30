@@ -14,10 +14,6 @@ import leicaCollectionImage from '../assets/images/leica-collection.png'
 import filmCamerasImage from '../assets/images/film-cameras.png'
 import japaneseImage from '../assets/images/japanese.png'
 
-// Import video background
-import bgVideo from '../assets/videos/bg.mp4'
-import bgVideo1 from '../assets/videos/landingbg.mp4'
-
 
 // Featured cameras with local images
 const featuredCameras = [
@@ -63,10 +59,7 @@ const recentCollections = [
 ];
 
 export const Landing: PageComponent = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [_isPlaying, _setIsPlaying] = useState(true);
-  const [_bgVideo, _setBgVideo] = useState<HTMLVideoElement | null>(null);
-  const [_bgVideo1, _setBgVideo1] = useState<HTMLVideoElement | null>(null);
+  const [currentSlide, setCurrentSlide] = useState(0)
   const [showSignIn, setShowSignIn] = useState(false)
   const [isAutoScrolling, setIsAutoScrolling] = useState(true)
   // Toggle this to test different sign-in components

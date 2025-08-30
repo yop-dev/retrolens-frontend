@@ -1,10 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@clerk/clerk-react';
 import { queryKeys } from '@/lib/react-query';
 import { userService } from '@/services/api/users.service';
 import { discussionService } from '@/services/api/discussions.service';
 import { cameraService } from '@/services/api/cameras.service';
-import type { UserProfile, Discussion, Camera } from '@/types';
 
 // User hooks
 export const useUser = (userId: string | undefined) => {
@@ -49,8 +48,8 @@ export const useDiscussions = (options?: {
       const token = await getToken();
       return discussionService.getAllDiscussions(token || undefined, {
         limit: options?.limit || 10,
-        sortBy: options?.sortBy as any,
-        sortOrder: options?.sortOrder as any,
+        sortBy: (options?.sortBy || 'created_at') as 'created_at' | 'view_count' | 'comment_count',
+        sortOrder: (options?.sortOrder || 'desc') as 'asc' | 'desc',
       });
     },
     staleTime: 2 * 60 * 1000, // Consider fresh for 2 minutes
