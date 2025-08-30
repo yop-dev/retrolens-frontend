@@ -1,8 +1,8 @@
-import { SignedIn, SignedOut, useUser, useClerk } from '@clerk/clerk-react'
-import { Camera, Search, Bell, User, Home, Compass, FolderOpen, LogOut, ChevronDown } from 'lucide-react'
+import { SignedIn, SignedOut, useClerk, useUser } from '@clerk/clerk-react'
+import { Bell, Camera, ChevronDown, Compass, FolderOpen, Home, LogOut, Search, User } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { CustomSignIn } from '../components/CustomSignIn'
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useApiWithAuth } from '@/hooks'
 import { userService } from '@/services/api/users.service'
 import '@/css/components/Header.css'
@@ -20,7 +20,7 @@ export function Header() {
   // Fetch user profile to get the backend avatar
   useEffect(() => {
     const fetchUserAvatar = async () => {
-      if (!user?.id) return
+      if (!user?.id) {return}
       
       try {
         const profile = await makeAuthenticatedRequest(async (token) => 
@@ -29,8 +29,8 @@ export function Header() {
         if (profile?.avatar_url) {
           setProfileAvatar(profile.avatar_url)
         }
-      } catch (error) {
-        console.log('Could not fetch profile avatar')
+      } catch (_error) {
+        console.error('Failed to fetch notifications:', _error);
       }
     }
 

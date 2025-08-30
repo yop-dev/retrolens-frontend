@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useUser, useClerk } from '@clerk/clerk-react';
-import { ArrowLeft, Settings, MapPin, Link as LinkIcon, MessageCircle, UserPlus, Mail, Camera as CameraIcon, User, X, Save, LogOut, Home, Search, Compass, FolderOpen } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useClerk, useUser } from '@clerk/clerk-react';
+import { ArrowLeft, Camera as CameraIcon, Compass, FolderOpen, Home, Link as LinkIcon, LogOut, Mail, MapPin, MessageCircle, Save, Search, Settings, User, UserPlus, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserListModal } from '@/components/profile/UserListModal';
 
@@ -11,7 +11,7 @@ import { apiClient } from '@/services/api/base';
 import { useApiWithAuth } from '@/hooks';
 import { API_ENDPOINTS } from '@/constants';
 import { cacheService } from '@/services/cache/cache.service';
-import type { UserProfile, Camera, Discussion } from '@/types';
+import type { Camera, Discussion, UserProfile } from '@/types';
 import '@/css/pages/Profile.css';
 import '@/css/components/skeleton.css';
 
@@ -135,7 +135,7 @@ export function ProfileOptimized() {
 
   // Fetch user data with caching
   const fetchUserData = useCallback(async () => {
-    if (!user?.id) return;
+    if (!user?.id) {return;}
 
     // Check cache first
     const cacheKey = cacheService.getUserKey(user.id);
@@ -307,7 +307,7 @@ export function ProfileOptimized() {
 
   const handleEditAvatarSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file) {return;}
 
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
     if (!validTypes.includes(file.type)) {
@@ -326,7 +326,7 @@ export function ProfileOptimized() {
   }, []);
 
   const handleSaveProfile = useCallback(async () => {
-    if (!userProfile) return;
+    if (!userProfile) {return;}
 
     setIsUpdatingProfile(true);
 
@@ -397,7 +397,7 @@ export function ProfileOptimized() {
   }, [userProfile, editFormData, editAvatarFile, editAvatarPreview, makeAuthenticatedRequest]);
 
   const handleFollowToggle = useCallback(async () => {
-    if (!userProfile) return;
+    if (!userProfile) {return;}
 
     try {
       if (isFollowing) {
@@ -433,7 +433,7 @@ export function ProfileOptimized() {
   }, [editAvatarPreview, editAvatarFile]);
 
   // Memoized filtered content based on active tab
-  const tabContent = useMemo(() => {
+  const _tabContent = useMemo(() => {
     switch (activeTab) {
       case 'collection':
         return userCameras;

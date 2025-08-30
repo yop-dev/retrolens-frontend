@@ -1,5 +1,5 @@
-import React, { useState, memo } from 'react';
-import { Edit2, Trash2, Share2, Download, Eye, Clock, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import React, { memo, useState } from 'react';
+import { AlertCircle, CheckCircle, Clock, Download, Edit2, Eye, Loader2, Share2, Trash2 } from 'lucide-react';
 import type { BaseComponentProps } from '@/types';
 
 export interface ManagedPhotoData {
@@ -51,7 +51,7 @@ export const PhotoManagementCard: React.FC<PhotoManagementCardProps> = memo(({
   onShare,
   onDownload,
   onView,
-  onToggleFavorite,
+  onToggleFavorite: _onToggleFavorite,
   variant = 'grid',
   selected = false,
   onSelect,

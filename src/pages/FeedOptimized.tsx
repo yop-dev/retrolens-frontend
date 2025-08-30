@@ -1,20 +1,9 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { 
-  Eye, 
-  MessageCircle, 
-  Heart, 
-  Share2, 
-  Plus,
-  X,
-  Send,
-  Camera,
-  Image,
-  MoreVertical,
-  Edit,
-  Trash2,
-  EyeOff
-} from 'lucide-react'
+  Camera, Clock as _Clock, Edit, Eye, EyeOff as _EyeOff, Heart, Image as ImageIcon, 
+  MessageCircle, MoreVertical, Plus, Send, Share2, Trash2, User as _User, X 
+} from 'lucide-react';
 import { useUser } from '@clerk/clerk-react'
 import { useApiWithAuth } from '@/hooks'
 import { discussionService } from '@/services/api/discussions.service'
@@ -24,7 +13,7 @@ import ImageLightbox from '@/components/ui/ImageLightbox'
 import { DiscussionSkeleton } from '@/components/ui/DiscussionSkeleton'
 import EditDiscussionModal from '@/components/ui/EditDiscussionModal'
 import { formatRelativeTime } from '@/utils/date.utils'
-import type { PageComponent, DiscussionFeedItem, UpdateDiscussionData } from '@/types'
+import type { DiscussionFeedItem, PageComponent, UpdateDiscussionData } from '@/types'
 import '@/css/pages/Feed.css'
 import '@/css/components/skeleton.css'
 import '@/css/components/feed-images.css'
@@ -230,7 +219,7 @@ const DiscussionCard = React.memo<{
             displayContent = content.slice(title.length).trim()
           }
           const shouldShow = displayContent && normalize(displayContent) !== normalize(title)
-          if (!shouldShow) return null
+          if (!shouldShow) {return null}
           const isLong = displayContent.length > 200
           const excerpt = isLong ? displayContent.slice(0, 200) + '…' : displayContent
           return (
@@ -413,7 +402,7 @@ export const FeedOptimized: PageComponent = () => {
 
   // Load discussions with pagination
   const loadDiscussions = useCallback(async (isLoadMore = false) => {
-    if (!user?.id) return
+    if (!user?.id) {return}
     
     const cacheKey = cacheService.getFeedKey(user.id)
     
@@ -550,7 +539,7 @@ export const FeedOptimized: PageComponent = () => {
 
   // Setup intersection observer for infinite scroll
   useEffect(() => {
-    if (loading) return
+    if (loading) {return}
 
     const observer = new IntersectionObserver(
       entries => {
@@ -606,7 +595,7 @@ export const FeedOptimized: PageComponent = () => {
   }, [])
 
   const handleSaveEdit = useCallback(async (discussionId: string, data: UpdateDiscussionData) => {
-    if (!user?.id) return
+    if (!user?.id) {return}
 
     try {
       await makeAuthenticatedRequest(async (token) => 
@@ -635,7 +624,7 @@ export const FeedOptimized: PageComponent = () => {
   }, [user?.id, makeAuthenticatedRequest])
 
   const handleDelete = useCallback(async (discussionId: string) => {
-    if (!user?.id) return
+    if (!user?.id) {return}
 
     try {
       await makeAuthenticatedRequest(async (token) => 
@@ -765,7 +754,7 @@ export const FeedOptimized: PageComponent = () => {
 
   const handleImageSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (!file) return
+    if (!file) {return}
 
     // Validate file
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
@@ -987,7 +976,7 @@ export const FeedOptimized: PageComponent = () => {
                     </div>
                   ) : (
                     <div className="image-upload-placeholder">
-                      <Image size={48} />
+                      <ImageIcon size={48} />
                       <h3>Upload Your Photo</h3>
                       <p>Click to select an image from your device</p>
                       <span className="file-info">JPEG, PNG, WebP or GIF • Max 10MB</span>

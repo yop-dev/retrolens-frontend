@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera as CameraIcon, Upload, X } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';

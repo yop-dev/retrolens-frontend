@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { Filter, Grid3x3, List, Loader2, TrendingUp, Clock, Sparkles, Shuffle } from 'lucide-react';
-import { SearchBar, PhotoCard } from '@/components/ui';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Clock, Filter, Grid3x3, List, Loader2, Shuffle, Sparkles, TrendingUp } from 'lucide-react';
+import { PhotoCard, SearchBar } from '@/components/ui';
 import type { PageComponent } from '@/types';
 import type { PhotoData } from '@/components/ui/PhotoCard';
 
@@ -161,7 +161,7 @@ export const Discover: PageComponent = () => {
   }, []);
 
   const handleLoadMore = useCallback(async () => {
-    if (!hasMore || isLoading) return;
+    if (!hasMore || isLoading) {return;}
     
     setIsLoading(true);
     try {

@@ -1,8 +1,8 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { 
-  Plus, Grid3x3, List, Upload, Download, Share2, Trash2, 
-  Edit2, Filter, SortAsc, SortDesc, Image, Heart, Clock,
-  CheckSquare, Square, MoreVertical, Loader2
+  CheckSquare, Clock, Download, Edit2, Grid3x3, Heart, 
+  Image, List, Loader2, Plus, Share2, SortAsc,
+  SortDesc, Square, Trash2, Upload
 } from 'lucide-react';
 import { PhotoManagementCard, UploadModal } from '@/components/ui';
 import type { PageComponent } from '@/types';
@@ -187,7 +187,7 @@ export const Collection: PageComponent = () => {
   }, []);
 
   const handleBulkDelete = useCallback(() => {
-    if (selectedPhotos.size === 0) return;
+    if (selectedPhotos.size === 0) {return;}
     
     if (confirm(`Are you sure you want to delete ${selectedPhotos.size} photos?`)) {
       setPhotos(prev => prev.filter(p => !selectedPhotos.has(p.id)));
@@ -222,7 +222,7 @@ export const Collection: PageComponent = () => {
   }, []);
 
   const getTabCount = (tabId: TabType) => {
-    if (tabId === activeTab) return sortedPhotos.length;
+    if (tabId === activeTab) {return sortedPhotos.length;}
     // In real app, these would be fetched from API
     switch (tabId) {
       case 'my-photos': return 24;

@@ -34,7 +34,7 @@ class LikeService {
    */
   async removeLike(data: LikeRequest, token?: string): Promise<LikeResponse> {
     return apiClient.delete<LikeResponse>('/api/v1/likes/', {
-      data,
+      body: JSON.stringify(data),
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
   }
@@ -44,9 +44,9 @@ class LikeService {
    */
   async checkLikeStatus(params: LikeRequest, token?: string): Promise<LikeStatusResponse> {
     const queryParams = new URLSearchParams();
-    if (params.discussion_id) queryParams.set('discussion_id', params.discussion_id);
-    if (params.camera_id) queryParams.set('camera_id', params.camera_id);
-    if (params.comment_id) queryParams.set('comment_id', params.comment_id);
+    if (params.discussion_id) {queryParams.set('discussion_id', params.discussion_id);}
+    if (params.camera_id) {queryParams.set('camera_id', params.camera_id);}
+    if (params.comment_id) {queryParams.set('comment_id', params.comment_id);}
 
     return apiClient.get<LikeStatusResponse>(`/api/v1/likes/check?${queryParams.toString()}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
@@ -58,9 +58,9 @@ class LikeService {
    */
   async getLikeCount(params: LikeRequest): Promise<LikeCountResponse> {
     const queryParams = new URLSearchParams();
-    if (params.discussion_id) queryParams.set('discussion_id', params.discussion_id);
-    if (params.camera_id) queryParams.set('camera_id', params.camera_id);
-    if (params.comment_id) queryParams.set('comment_id', params.comment_id);
+    if (params.discussion_id) {queryParams.set('discussion_id', params.discussion_id);}
+    if (params.camera_id) {queryParams.set('camera_id', params.camera_id);}
+    if (params.comment_id) {queryParams.set('comment_id', params.comment_id);}
 
     return apiClient.get<LikeCountResponse>(`/api/v1/likes/count?${queryParams.toString()}`);
   }

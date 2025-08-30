@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { Search, X, Filter } from 'lucide-react';
+import React, { useCallback, useState } from 'react';
+import { Filter, Search, X } from 'lucide-react';
 import { useDebounce } from '@/hooks';
 import type { BaseComponentProps } from '@/types';
 

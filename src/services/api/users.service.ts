@@ -1,11 +1,9 @@
 import { apiClient } from './base';
 import { API_ENDPOINTS } from '@/constants';
-import type {
-  UserProfile,
-  CreateUserData,
-  UpdateUserData,
-  UserSyncData,
-  ApiResponse
+import type { 
+  CreateUserData, 
+  UpdateUserData, 
+  UserProfile 
 } from '@/types';
 
 /**
@@ -15,7 +13,7 @@ export class UserService {
   /**
    * Sync user with backend (Clerk integration)
    */
-  async syncUser(userData: UserSyncData, token?: string): Promise<{
+  async syncUser(userData: any, token?: string): Promise<{
     message: string;
     user_id: string;
     clerk_id: string;
@@ -101,9 +99,9 @@ export class UserService {
   ): Promise<UserProfile[]> {
     const searchParams = new URLSearchParams();
     
-    if (params?.page) searchParams.append('page', params.page.toString());
-    if (params?.limit) searchParams.append('limit', params.limit.toString());
-    if (params?.search) searchParams.append('search', params.search);
+    if (params?.page) {searchParams.append('page', params.page.toString());}
+    if (params?.limit) {searchParams.append('limit', params.limit.toString());}
+    if (params?.search) {searchParams.append('search', params.search);}
 
     const endpoint = params && Object.keys(params).length > 0
       ? `${API_ENDPOINTS.USERS}?${searchParams.toString()}`

@@ -1,17 +1,17 @@
 import { apiClient } from './base';
 import { API_ENDPOINTS } from '@/constants';
 import type {
-  Discussion,
-  DiscussionWithDetails,
-  DiscussionComment,
-  DiscussionCategory,
-  CreateDiscussionData,
-  UpdateDiscussionData,
   CreateCommentData,
-  UpdateCommentData,
+  CreateDiscussionData,
+  Discussion,
+  DiscussionCategory,
+  DiscussionComment,
   DiscussionFilters,
   DiscussionSortBy,
-  SortOrder
+  DiscussionWithDetails,
+  SortOrder,
+  UpdateCommentData,
+  UpdateDiscussionData
 } from '@/types';
 
 /**
@@ -33,24 +33,24 @@ export class DiscussionService {
   ): Promise<Discussion[]> {
     const params = new URLSearchParams();
 
-    if (options?.page) params.append('page', options.page.toString());
-    if (options?.limit) params.append('limit', options.limit.toString());
-    if (options?.sortBy) params.append('sortBy', options.sortBy);
-    if (options?.sortOrder) params.append('sortOrder', options.sortOrder);
+    if (options?.page) {params.append('page', options.page.toString());}
+    if (options?.limit) {params.append('limit', options.limit.toString());}
+    if (options?.sortBy) {params.append('sortBy', options.sortBy);}
+    if (options?.sortOrder) {params.append('sortOrder', options.sortOrder);}
 
     // Add filter parameters
     if (options?.filters) {
       const { filters } = options;
-      if (filters.category_id) params.append('category_id', filters.category_id);
-      if (filters.author_id) params.append('author_id', filters.author_id);
+      if (filters.category_id) {params.append('category_id', filters.category_id);}
+      if (filters.author_id) {params.append('author_id', filters.author_id);}
       if (filters.is_pinned !== undefined) {
         params.append('is_pinned', filters.is_pinned.toString());
       }
       if (filters.tags?.length) {
         filters.tags.forEach(tag => params.append('tags[]', tag));
       }
-      if (filters.created_after) params.append('created_after', filters.created_after);
-      if (filters.created_before) params.append('created_before', filters.created_before);
+      if (filters.created_after) {params.append('created_after', filters.created_after);}
+      if (filters.created_before) {params.append('created_before', filters.created_before);}
     }
 
     const endpoint = params.toString()

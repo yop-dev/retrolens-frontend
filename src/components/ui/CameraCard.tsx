@@ -1,5 +1,5 @@
-import React, { useState, memo } from 'react';
-import { MoreVertical, Eye } from 'lucide-react';
+import React, { memo, useState } from 'react';
+import { Eye, MoreVertical } from 'lucide-react';
 import { SocialActions } from './SocialActions';
 import { OptimizedImage } from './OptimizedImage';
 import { formatRelativeTime } from '@/utils/date.utils';
@@ -28,7 +28,7 @@ export const CameraCard: React.FC<CameraCardProps> = memo(({
   className = ''
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [showComments, setShowComments] = useState(false);
+  const [_showComments, _setShowComments] = useState(false);
 
   const handleCardClick = () => {
     if (onViewDetails) {
@@ -239,7 +239,7 @@ export const CameraCard: React.FC<CameraCardProps> = memo(({
           initialIsLiked={camera.is_liked || false}
           initialCommentCount={camera.comment_count || 0}
           currentUserId={currentUserId}
-          showComments={showComments}
+          showComments={_showComments}
           className="px-4"
         />
       )}

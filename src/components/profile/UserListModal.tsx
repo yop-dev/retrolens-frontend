@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, User, UserCheck, UserPlus } from 'lucide-react';
+import { User, UserCheck, UserPlus, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
 import { userService } from '@/services/api/users.service';
@@ -63,7 +63,7 @@ export const UserListModal: React.FC<UserListModalProps> = ({
   };
 
   const handleFollow = async (targetUserId: string) => {
-    if (!currentUserId) return;
+    if (!currentUserId) {return;}
     
     setLoadingFollow({ ...loadingFollow, [targetUserId]: true });
     try {
@@ -83,7 +83,7 @@ export const UserListModal: React.FC<UserListModalProps> = ({
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">

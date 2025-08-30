@@ -41,10 +41,10 @@ class CommentService {
    */
   async getComments(params: CommentListParams): Promise<Comment[]> {
     const queryParams = new URLSearchParams();
-    if (params.discussion_id) queryParams.set('discussion_id', params.discussion_id);
-    if (params.camera_id) queryParams.set('camera_id', params.camera_id);
-    if (params.limit) queryParams.set('limit', params.limit.toString());
-    if (params.offset) queryParams.set('offset', params.offset.toString());
+    if (params.discussion_id) {queryParams.set('discussion_id', params.discussion_id);}
+    if (params.camera_id) {queryParams.set('camera_id', params.camera_id);}
+    if (params.limit) {queryParams.set('limit', params.limit.toString());}
+    if (params.offset) {queryParams.set('offset', params.offset.toString());}
 
     return apiClient.get<Comment[]>(`/api/v1/comments/?${queryParams.toString()}`);
   }

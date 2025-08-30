@@ -18,7 +18,7 @@ export function CustomSignIn({ onClose }: { onClose: () => void }) {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!signInLoaded || !signIn) return
+    if (!signInLoaded || !signIn) {return}
 
     setIsLoading(true)
     setError('')
@@ -57,7 +57,7 @@ export function CustomSignIn({ onClose }: { onClose: () => void }) {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!signUpLoaded || !signUp) return
+    if (!signUpLoaded || !signUp) {return}
 
     if (password !== confirmPassword) {
       setError('Passwords do not match')
@@ -125,7 +125,7 @@ export function CustomSignIn({ onClose }: { onClose: () => void }) {
   }
 
   const handleGoogleSignIn = async () => {
-    if (!signInLoaded || !signIn) return
+    if (!signInLoaded || !signIn) {return}
 
     try {
       await signIn.authenticateWithRedirect({
@@ -141,7 +141,7 @@ export function CustomSignIn({ onClose }: { onClose: () => void }) {
 
   const handleVerifyEmail = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!signUpLoaded || !signUp) return
+    if (!signUpLoaded || !signUp) {return}
 
     setIsLoading(true)
     setError('')
@@ -224,7 +224,7 @@ export function CustomSignIn({ onClose }: { onClose: () => void }) {
                     await signUp?.prepareEmailAddressVerification({ strategy: 'email_code' })
                     setError('')
                     alert('New verification code sent!')
-                  } catch (err) {
+                  } catch (_err) {
                     setError('Failed to resend code. Please try again.')
                   }
                 }} 

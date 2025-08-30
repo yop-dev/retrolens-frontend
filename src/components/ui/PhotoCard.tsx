@@ -1,5 +1,5 @@
-import React, { useState, memo } from 'react';
-import { Heart, MessageCircle, Share2, MoreVertical, Eye } from 'lucide-react';
+import React, { memo, useState } from 'react';
+import { Eye, Heart, MessageCircle, MoreVertical, Share2 } from 'lucide-react';
 import type { BaseComponentProps } from '@/types';
 
 export interface PhotoData {

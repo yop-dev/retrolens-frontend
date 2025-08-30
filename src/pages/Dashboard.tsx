@@ -1,5 +1,5 @@
 import { useUser } from '@clerk/clerk-react'
-import { Camera, MessageSquare, Users, TrendingUp } from 'lucide-react'
+import { Camera, MessageSquare, TrendingUp, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 

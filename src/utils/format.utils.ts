@@ -6,7 +6,7 @@
  * Capitalize first letter of a string
  */
 export const capitalize = (str: string): string => {
-  if (!str) return str;
+  if (!str) {return str;}
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
 
@@ -14,7 +14,7 @@ export const capitalize = (str: string): string => {
  * Convert string to title case
  */
 export const toTitleCase = (str: string): string => {
-  if (!str) return str;
+  if (!str) {return str;}
   return str.replace(/\w\S*/g, (txt) =>
     txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
   );
@@ -24,7 +24,7 @@ export const toTitleCase = (str: string): string => {
  * Convert camelCase or PascalCase to readable text
  */
 export const camelToReadable = (str: string): string => {
-  if (!str) return str;
+  if (!str) {return str;}
   return str
     .replace(/([A-Z])/g, ' $1')
     .replace(/^./, (char) => char.toUpperCase())
@@ -35,7 +35,7 @@ export const camelToReadable = (str: string): string => {
  * Convert snake_case to readable text
  */
 export const snakeToReadable = (str: string): string => {
-  if (!str) return str;
+  if (!str) {return str;}
   return str
     .split('_')
     .map(word => capitalize(word))
@@ -46,7 +46,7 @@ export const snakeToReadable = (str: string): string => {
  * Truncate text with ellipsis
  */
 export const truncateText = (text: string, maxLength: number): string => {
-  if (!text || text.length <= maxLength) return text;
+  if (!text || text.length <= maxLength) {return text;}
   return text.slice(0, maxLength).trim() + '...';
 };
 
@@ -74,7 +74,7 @@ export const formatCurrency = (
  * Format file size in human readable format
  */
 export const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes';
+  if (bytes === 0) {return '0 Bytes';}
 
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
@@ -87,7 +87,7 @@ export const formatFileSize = (bytes: number): string => {
  * Generate initials from a name
  */
 export const getInitials = (name: string): string => {
-  if (!name) return '';
+  if (!name) {return '';}
   
   return name
     .split(' ')
@@ -135,7 +135,7 @@ export const pluralize = (
   singular: string,
   plural?: string
 ): string => {
-  if (count === 1) return `${count} ${singular}`;
+  if (count === 1) {return `${count} ${singular}`;}
   return `${count} ${plural || singular + 's'}`;
 };
 
@@ -160,7 +160,7 @@ export const highlightSearchTerm = (
   text: string,
   searchTerm: string
 ): string => {
-  if (!searchTerm.trim()) return text;
+  if (!searchTerm.trim()) {return text;}
   
   const regex = new RegExp(`(${searchTerm})`, 'gi');
   return text.replace(regex, '<mark>$1</mark>');

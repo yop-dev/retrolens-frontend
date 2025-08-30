@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useApiWithAuth } from '@/hooks';
 import { likeService } from '@/services/api';
 import { logError } from '@/utils';
@@ -32,7 +32,7 @@ export const LikeButton: React.FC<LikeButtonProps> = ({
   const { makeAuthenticatedRequest } = useApiWithAuth();
 
   const handleLikeToggle = useCallback(async () => {
-    if (isLoading) return;
+    if (isLoading) {return;}
 
     setIsLoading(true);
     try {

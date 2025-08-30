@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useApiWithAuth } from '@/hooks';
 import { commentService } from '@/services/api';
 import { Comment } from '@/services/api/comments.service';
@@ -82,7 +82,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
   }, [comment.body]);
 
   const handleDelete = useCallback(async () => {
-    if (!window.confirm('Are you sure you want to delete this comment?')) return;
+    if (!window.confirm('Are you sure you want to delete this comment?')) {return;}
 
     setIsLoading(true);
     try {

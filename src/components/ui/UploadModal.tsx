@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useRef } from 'react';
-import { Upload, X, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
+import React, { useCallback, useRef, useState } from 'react';
+import { AlertCircle, CheckCircle, Loader2, Upload, X } from 'lucide-react';
 import type { BaseComponentProps } from '@/types';
 
 interface UploadModalProps extends BaseComponentProps {
@@ -133,7 +133,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
   }, []);
 
   const handleUpload = useCallback(async () => {
-    if (files.length === 0) return;
+    if (files.length === 0) {return;}
 
     setUploadStatus('uploading');
     setErrorMessage('');
@@ -163,7 +163,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     }
   }, [uploadStatus, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <div className={`upload-modal-overlay ${className}`} onClick={handleClose}>

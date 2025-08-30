@@ -1,6 +1,6 @@
 import { SignedIn, SignedOut } from '@clerk/clerk-react'
-import { ChevronLeft, ChevronRight, Camera, Users, Star, MessageCircle, ArrowRight } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { ArrowRight, Camera, ChevronLeft, ChevronRight, MessageCircle, Star, Users } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CustomSignIn } from '../components/CustomSignIn'
 import { ClerkSignInModal } from '../components/ClerkSignInModal'
@@ -63,7 +63,10 @@ const recentCollections = [
 ];
 
 export const Landing: PageComponent = () => {
-  const [currentSlide, setCurrentSlide] = useState(0)
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [_isPlaying, _setIsPlaying] = useState(true);
+  const [_bgVideo, _setBgVideo] = useState<HTMLVideoElement | null>(null);
+  const [_bgVideo1, _setBgVideo1] = useState<HTMLVideoElement | null>(null);
   const [showSignIn, setShowSignIn] = useState(false)
   const [isAutoScrolling, setIsAutoScrolling] = useState(true)
   // Toggle this to test different sign-in components
@@ -71,7 +74,7 @@ export const Landing: PageComponent = () => {
 
   // Auto-scroll functionality
   useEffect(() => {
-    if (!isAutoScrolling) return
+    if (!isAutoScrolling) {return}
 
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % featuredCameras.length)

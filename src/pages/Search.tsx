@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useUser } from '@clerk/clerk-react'
-import { Search as SearchIcon, User, UserPlus, UserCheck, ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Search as SearchIcon, User, UserCheck, UserPlus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { userService } from '@/services/api/users.service';
 import { useApiWithAuth } from '@/hooks';
@@ -79,7 +79,7 @@ export function Search() {
 
   // Handle follow/unfollow
   const handleFollowToggle = async (targetUserId: string) => {
-    if (!user?.id) return
+    if (!user?.id) {return}
 
     try {
       const isFollowing = followingUsers.has(targetUserId)

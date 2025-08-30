@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuth as useClerkAuth, useUser } from '@clerk/clerk-react';
 import { clerkAuthService } from '@/services/auth';
 import { handleApiError, logError } from '@/utils';

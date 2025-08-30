@@ -1,5 +1,3 @@
-import type { ApiError } from '@/types';
-
 /**
  * Custom error class for API errors
  */
@@ -152,13 +150,16 @@ export const getUserFriendlyMessage = (error: AppApiError): string => {
 /**
  * Log error for debugging (in development) or monitoring (in production)
  */
-export const logError = (error: AppApiError, context?: string): void => {
+export const logError = (error: unknown, context?: string): void => {
+  // Convert unknown error to AppApiError if needed
+  const apiError = error instanceof AppApiError ? error : handleApiError(error);
+  
   const errorInfo = {
-    message: error.message,
-    status: error.status,
-    details: error.details,
+    message: apiError.message,
+    status: apiError.status,
+    details: apiError.details,
     context,
-    stack: error.stack,
+    stack: apiError.stack,
     timestamp: new Date().toISOString()
   };
 
@@ -168,8 +169,8 @@ export const logError = (error: AppApiError, context?: string): void => {
     // In production, you might want to send to a monitoring service
     // e.g., Sentry, LogRocket, etc.
     console.error('API Error:', {
-      message: error.message,
-      status: error.status,
+      message: apiError.message,
+      status: apiError.status,
       context,
       timestamp: errorInfo.timestamp
     });

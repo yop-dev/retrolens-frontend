@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useUser, useAuth } from '@clerk/clerk-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 
 import { clerkAuthService } from '@/services/auth';
 import { handleApiError, logError } from '@/utils';

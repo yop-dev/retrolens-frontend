@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 interface ImageLightboxProps {
   images: string[]
@@ -19,15 +19,15 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({ images, initialInd
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-      if (e.key === 'ArrowLeft') prev()
-      if (e.key === 'ArrowRight') next()
+      if (e.key === 'Escape') {onClose()}
+      if (e.key === 'ArrowLeft') {prev()}
+      if (e.key === 'ArrowRight') {next()}
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose, prev, next])
 
-  if (!images || images.length === 0) return null
+  if (!images || images.length === 0) {return null}
 
   return (
     <div className="lightbox-overlay" onClick={onClose} role="dialog" aria-modal="true">

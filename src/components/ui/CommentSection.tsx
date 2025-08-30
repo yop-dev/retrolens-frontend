@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useApiWithAuth } from '@/hooks';
 import { commentService } from '@/services/api';
 import { Comment } from '@/services/api/comments.service';
@@ -28,7 +28,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
 
   // Load comments
   const loadComments = useCallback(async () => {
-    if (!discussionId && !cameraId) return;
+    if (!discussionId && !cameraId) {return;}
 
     setIsLoading(true);
     try {
@@ -51,7 +51,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
 
   // Submit new comment
   const handleSubmitComment = useCallback(async () => {
-    if (!newComment.trim() || isSubmitting) return;
+    if (!newComment.trim() || isSubmitting) {return;}
 
     setIsSubmitting(true);
     try {
@@ -75,7 +75,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
 
   // Submit reply
   const handleSubmitReply = useCallback(async () => {
-    if (!replyText.trim() || !replyingTo || isSubmitting) return;
+    if (!replyText.trim() || !replyingTo || isSubmitting) {return;}
 
     setIsSubmitting(true);
     try {

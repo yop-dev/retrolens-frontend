@@ -1,36 +1,36 @@
-import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  Heart,
-  MessageCircle,
-  Share2,
   Bookmark,
   Calendar,
-  ChevronLeft,
-  MoreVertical,
-  TrendingUp,
-  Clock,
-  Hash,
-  Eye,
-  Plus,
   Camera,
-  X,
-  Upload,
+  ChevronLeft,
+  Clock,
   Edit,
+  Eye,
+  EyeOff,
+  Hash,
+  Heart,
+  MessageCircle,
+  MoreVertical,
+  Plus,
+  Share2,
   Trash2,
-  EyeOff
+  TrendingUp,
+  Upload,
+  X
 } from 'lucide-react';
 
 import { queryKeys } from '@/lib/react-query';
 import { discussionService } from '@/services/api/discussions.service';
 import { userService } from '@/services/api/users.service';
-import { FeedSkeleton, DiscussionCardSkeleton } from '@/components/ui/Skeletons';
+import { DiscussionCardSkeleton, FeedSkeleton } from '@/components/ui/Skeletons';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { SocialActions } from '@/components/ui/SocialActions';
 import EditDiscussionModal from '@/components/ui/EditDiscussionModal';
-import { usePrefetchUser, usePrefetchDiscussion } from '@/hooks/useOptimizedQueries';
+import { usePrefetchDiscussion, usePrefetchUser } from '@/hooks/useOptimizedQueries';
 import { perf, throttle } from '@/utils/performance';
 import { formatRelativeTime } from '@/utils/date.utils';
 import type { Discussion, UserProfile } from '@/types';
@@ -103,7 +103,7 @@ const FeedOptimizedV2: React.FC = () => {
   const { data: followingUsers, isLoading: isLoadingFollowing } = useQuery({
     queryKey: ['following', user?.id],
     queryFn: async () => {
-      if (!user?.id) return [];
+      if (!user?.id) {return [];}
       const token = await getToken();
       try {
         const following = await userService.getUserFollowing(user.id, token || undefined);
@@ -232,7 +232,7 @@ const FeedOptimizedV2: React.FC = () => {
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage: any, pages: any[]) => {
-      if (lastPage.length < POSTS_PER_PAGE) return undefined;
+      if (lastPage.length < POSTS_PER_PAGE) {return undefined;}
       return pages.length;
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
@@ -245,7 +245,7 @@ const FeedOptimizedV2: React.FC = () => {
 
   // Set up infinite scroll
   useEffect(() => {
-    if (!loadMoreRef.current || !hasNextPage || isFetchingNextPage) return;
+    if (!loadMoreRef.current || !hasNextPage || isFetchingNextPage) {return;}
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -280,7 +280,7 @@ const FeedOptimizedV2: React.FC = () => {
   // Optimized scroll handler
   const handleScroll = useCallback(
     throttle(() => {
-      const scrolled = window.scrollY > 100;
+      const _scrolled = window.scrollY > 100;
       // You can add a state here to show/hide a "back to top" button
     }, 100),
     []
@@ -316,10 +316,10 @@ const FeedOptimizedV2: React.FC = () => {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 30) return `${diffDays}d ago`;
+    if (diffMins < 1) {return 'just now';}
+    if (diffMins < 60) {return `${diffMins}m ago`;}
+    if (diffHours < 24) {return `${diffHours}h ago`;}
+    if (diffDays < 30) {return `${diffDays}d ago`;}
     return postDate.toLocaleDateString();
   };
 
@@ -355,7 +355,7 @@ const FeedOptimizedV2: React.FC = () => {
   };
 
   const handleSaveEdit = async (discussionId: string, data: any) => {
-    if (!user?.id) return;
+    if (!user?.id) {return;}
 
     try {
       const token = await getToken();
@@ -371,7 +371,7 @@ const FeedOptimizedV2: React.FC = () => {
   };
 
   const handleDelete = async (discussionId: string) => {
-    if (!user?.id) return;
+    if (!user?.id) {return;}
 
     try {
       const token = await getToken();

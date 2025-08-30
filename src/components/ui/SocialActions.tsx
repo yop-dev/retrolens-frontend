@@ -23,7 +23,7 @@ export const SocialActions: React.FC<SocialActionsProps> = ({
   showComments = false,
   className = '',
 }) => {
-  const [commentCount, setCommentCount] = useState(initialCommentCount);
+  const [commentCount, _setCommentCount] = useState(initialCommentCount);
   const [showCommentSection, setShowCommentSection] = useState(showComments);
 
   const handleToggleComments = () => {

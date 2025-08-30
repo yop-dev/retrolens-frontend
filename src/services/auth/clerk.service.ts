@@ -88,8 +88,8 @@ export class ClerkAuthService {
    */
   private generateUsername(user: UserResource): string {
     // Priority order: username -> firstName -> email prefix -> fallback
-    if (user.username) return user.username;
-    if (user.firstName) return user.firstName.toLowerCase();
+    if (user.username) {return user.username;}
+    if (user.firstName) {return user.firstName.toLowerCase();}
     
     const email = user.primaryEmailAddress?.emailAddress;
     if (email) {
@@ -103,10 +103,10 @@ export class ClerkAuthService {
    * Get full name from Clerk user data
    */
   private getFullName(user: UserResource): string {
-    if (user.fullName) return user.fullName;
+    if (user.fullName) {return user.fullName;}
     
     const parts = [user.firstName, user.lastName].filter(Boolean);
-    if (parts.length > 0) return parts.join(' ');
+    if (parts.length > 0) {return parts.join(' ');}
     
     return this.generateUsername(user);
   }

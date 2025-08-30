@@ -1,12 +1,12 @@
 import { SignedIn, SignedOut } from '@clerk/clerk-react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { Suspense, lazy, useEffect, useState } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 import { ROUTE_PATHS } from '@/constants';
-import { Header, AuthWrapper } from '@/components';
-import { Landing, Search, AddCamera } from '@/pages';
+import { AuthWrapper, Header } from '@/components';
+import { AddCamera, Landing, Search } from '@/pages';
 import { queryClient } from '@/lib/react-query';
 
 // Lazy load components for better performance

@@ -1,6 +1,5 @@
 import { API_CONFIG } from '@/constants';
-import { handleApiError, withRetry, type AppApiError } from '@/utils';
-import type { ApiResponse } from '@/types';
+import { handleApiError, withRetry } from '@/utils';
 
 /**
  * HTTP client configuration

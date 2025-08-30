@@ -2,11 +2,10 @@ import { apiClient } from './base';
 import { API_ENDPOINTS } from '@/constants';
 import type {
   Camera,
-  CreateCameraData,
-  UpdateCameraData,
   CameraFilters,
   CameraSortBy,
-  SortOrder
+  CreateCameraData,
+  SortOrder,
 } from '@/types';
 
 /**
@@ -28,20 +27,20 @@ export class CameraService {
   ): Promise<Camera[]> {
     const params = new URLSearchParams();
 
-    if (options?.page) params.append('page', options.page.toString());
-    if (options?.limit) params.append('limit', options.limit.toString());
-    if (options?.sortBy) params.append('sortBy', options.sortBy);
-    if (options?.sortOrder) params.append('sortOrder', options.sortOrder);
+    if (options?.page) {params.append('page', options.page.toString());}
+    if (options?.limit) {params.append('limit', options.limit.toString());}
+    if (options?.sortBy) {params.append('sortBy', options.sortBy);}
+    if (options?.sortOrder) {params.append('sortOrder', options.sortOrder);}
 
     // Add filter parameters
     if (options?.filters) {
       const { filters } = options;
-      if (filters.brand_name) params.append('brand_name', filters.brand_name);
-      if (filters.camera_type) params.append('camera_type', filters.camera_type);
-      if (filters.film_format) params.append('film_format', filters.film_format);
-      if (filters.condition) params.append('condition', filters.condition);
-      if (filters.min_year) params.append('min_year', filters.min_year.toString());
-      if (filters.max_year) params.append('max_year', filters.max_year.toString());
+      if (filters.brand_name) {params.append('brand_name', filters.brand_name);}
+      if (filters.camera_type) {params.append('camera_type', filters.camera_type);}
+      if (filters.film_format) {params.append('film_format', filters.film_format);}
+      if (filters.condition) {params.append('condition', filters.condition);}
+      if (filters.min_year) {params.append('min_year', filters.min_year.toString());}
+      if (filters.max_year) {params.append('max_year', filters.max_year.toString());}
       if (filters.is_for_sale !== undefined) {
         params.append('is_for_sale', filters.is_for_sale.toString());
       }

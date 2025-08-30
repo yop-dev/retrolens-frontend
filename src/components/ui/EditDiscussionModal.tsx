@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, Save, Trash2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Save, Trash2, X } from 'lucide-react';
 import type { DiscussionFeedItem, UpdateDiscussionData } from '@/types';
 
 interface EditDiscussionModalProps {
@@ -17,7 +17,7 @@ export const EditDiscussionModal: React.FC<EditDiscussionModalProps> = ({
   onClose,
   onSave,
   onDelete,
-  isLoading = false
+  isLoading: _isLoading = false
 }) => {
   const [formData, setFormData] = useState({
     title: discussion.title || '',
@@ -82,7 +82,7 @@ export const EditDiscussionModal: React.FC<EditDiscussionModalProps> = ({
     setFormData({ ...formData, tags });
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <div className="create-modal-overlay" onClick={onClose}>

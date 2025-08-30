@@ -71,7 +71,7 @@ export function debounce<T extends (...args: any[]) => any>(
       func(...args);
     };
     
-    if (timeout) clearTimeout(timeout);
+    if (timeout) {clearTimeout(timeout);}
     timeout = setTimeout(later, wait);
   };
 }
@@ -83,7 +83,7 @@ export function throttle<T extends (...args: any[]) => any>(
 ): (...args: Parameters<T>) => void {
   let inThrottle: boolean;
   
-  return function(...args: Parameters<T>) {
+  return function(this: any, ...args: Parameters<T>) {
     if (!inThrottle) {
       func.apply(this, args);
       inThrottle = true;
@@ -127,9 +127,9 @@ export function getOptimizedImageUrl(
   // For Supabase Storage, add transformation params
   if (url.includes('supabase')) {
     const params = new URLSearchParams();
-    if (options.width) params.append('width', options.width.toString());
-    if (options.height) params.append('height', options.height.toString());
-    if (options.quality) params.append('quality', options.quality.toString());
+    if (options.width) {params.append('width', options.width.toString());}
+    if (options.height) {params.append('height', options.height.toString());}
+    if (options.quality) {params.append('quality', options.quality.toString());}
     
     return `${url}?${params.toString()}`;
   }
@@ -156,7 +156,7 @@ export class BatchQueue<T> {
     return new Promise((resolve) => {
       this.queue.push({ id, resolver: resolve });
       
-      if (this.timeout) clearTimeout(this.timeout);
+      if (this.timeout) {clearTimeout(this.timeout);}
       
       this.timeout = setTimeout(() => {
         this.processBatch();
@@ -168,7 +168,7 @@ export class BatchQueue<T> {
     const batch = [...this.queue];
     this.queue = [];
     
-    if (batch.length === 0) return;
+    if (batch.length === 0) {return;}
     
     try {
       const ids = batch.map(item => item.id);

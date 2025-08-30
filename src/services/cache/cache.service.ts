@@ -48,7 +48,7 @@ class CacheService {
    */
   has(key: string): boolean {
     const entry = this.cache.get(key)
-    if (!entry) return false
+    if (!entry) {return false}
     
     if (Date.now() > entry.expiresAt) {
       this.cache.delete(key)
